@@ -25,10 +25,38 @@
       text-align: center;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .header-btn {
+      padding: 8px 16px;
+      border: 2px solid #3498db;
+      background: white;
+      color: #3498db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .header-btn:hover {
+      background: #3498db;
+      color: white;
+    }
+
+    .hidden-file-input {
+      display: none;
+    }
+
     .header h1 {
       color: #2c3e50;
       font-size: 24px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .header .tagline {
@@ -107,6 +135,16 @@
       color: #2c3e50;
       margin-bottom: 24px;
       text-align: center;
+    }
+
+    .today-label {
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
 
     .section {
@@ -255,6 +293,40 @@
     .empty-state-icon {
       font-size: 64px;
       margin-bottom: 16px;
+    }
+
+    .success-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #27ae60;
+    }
+
+    .success-state h2 {
+      color: #27ae60;
+      margin-bottom: 12px;
+    }
+
+    .success-state p {
+      color: #7f8c8d;
+      margin-bottom: 24px;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-success:hover {
+      background: #229954;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
     }
 
     .bottom-nav {
@@ -427,13 +499,61 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    .saved-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #27ae60;
+      color: white;
+      padding: 20px 40px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(39, 174, 96, 0.4);
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .saved-popup.show {
+      opacity: 1;
+    }
+
+    .completion-screen {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .completion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .completion-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 12px;
+    }
+
+    .completion-message {
+      color: #7f8c8d;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
   <div class="header">
+    <div class="header-actions">
+      <button class="header-btn" onclick="exportData()">Export</button>
+      <button class="header-btn" onclick="document.getElementById('importFile').click()">Import</button>
+      <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
+    </div>
     <h1>Personal Rolodex Tickler</h1>
     <div class="tagline">Stay Close</div>
-    <div class="subtitle">Today's Connection</div>
   </div>
 
   <div class="search-bar">
@@ -455,6 +575,8 @@
   </div>
 
   <button class="add-person-btn" id="addPersonBtn" title="Add person">+</button>
+
+  <div id="savedPopup" class="saved-popup">Saved!</div>
 
   <div class="bottom-nav">
     <button class="nav-tab active" data-list="personal">Personal</button>
@@ -517,8 +639,89 @@
     let people = [];
     let currentList = 'personal';
     let currentPerson = null;
+    let savedPerson = null; // Track the person we saved to return to them
     let editingPersonId = null;
     let searchActive = false;
+
+    // Export/Import Functions
+    function exportData() {
+      const exportObj = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        people: people
+      };
+
+      const dataStr = JSON.stringify(exportObj, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rolodex-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert('Data exported successfully! You can now import this file on another device.');
+    }
+
+    async function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (!importedData.people || !Array.isArray(importedData.people)) {
+            alert('Invalid file format. Please select a valid Rolodex backup file.');
+            return;
+          }
+
+          const shouldMerge = confirm(
+            `This file contains ${importedData.people.length} people.\n\n` +
+            `Current data: ${people.length} people.\n\n` +
+            `Click OK to MERGE (add to existing), or CANCEL to REPLACE all data.`
+          );
+
+          if (shouldMerge) {
+            // Merge: Add new people, update existing ones by name
+            importedData.people.forEach(importedPerson => {
+              const existingPerson = people.find(p => 
+                p.name.toLowerCase() === importedPerson.name.toLowerCase() && 
+                p.list_type === importedPerson.list_type
+              );
+              
+              if (existingPerson) {
+                // Update existing person
+                Object.assign(existingPerson, importedPerson);
+              } else {
+                // Add new person
+                people.push(importedPerson);
+              }
+            });
+          } else {
+            // Replace all data
+            people = importedData.people;
+          }
+
+          await saveData();
+          
+          // Reset file input
+          event.target.value = '';
+          
+          alert('Data imported successfully!');
+          showTodaysPerson();
+        } catch (error) {
+          alert('Error importing file. Please make sure it\'s a valid Rolodex backup file.');
+          console.error('Import error:', error);
+        }
+      };
+      
+      reader.readAsText(file);
+    }
 
     // Initialize app
     async function init() {
@@ -765,6 +968,7 @@
         : 'Never';
       
       card.innerHTML = `
+        <div class="today-label">Today's Connection</div>
         <div class="person-name">${person.name}</div>
         
         <div class="contact-info">
@@ -826,6 +1030,7 @@
         
         <div class="actions">
           <button class="btn-secondary" onclick="openEditPersonModal(people.find(p => p.id === '${person.id}'))">Edit Person</button>
+          <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
           <button class="btn-primary" onclick="skipPerson()">Next Person</button>
         </div>
       `;
@@ -887,6 +1092,67 @@
 
       person.preferred_contact_method = method;
       await saveData();
+    }
+
+    async function saveAndComplete(personId) {
+      // Save all current notes
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      // Manually save all fields
+      if (document.getElementById('lastConvo')) {
+        person.notes_last_conversation = document.getElementById('lastConvo').value;
+      }
+      if (document.getElementById('nextConvo')) {
+        person.notes_next_conversation = document.getElementById('nextConvo').value;
+      }
+      if (document.getElementById('giftIdeas')) {
+        person.gift_ideas = document.getElementById('giftIdeas').value;
+      }
+      if (document.getElementById('likes')) {
+        person.likes = document.getElementById('likes').value;
+      }
+      if (document.getElementById('dislikes')) {
+        person.dislikes = document.getElementById('dislikes').value;
+      }
+      if (document.getElementById('relations')) {
+        person.relations = document.getElementById('relations').value;
+      }
+
+      await saveData();
+
+      // Store the person we're saving to return to them later
+      savedPerson = person;
+
+      // Show the "Saved!" popup
+      const popup = document.getElementById('savedPopup');
+      popup.classList.add('show');
+
+      // After 2 seconds, hide popup and show completion screen
+      setTimeout(() => {
+        popup.classList.remove('show');
+        showCompletionScreen();
+      }, 2000);
+    }
+
+    function showCompletionScreen() {
+      const card = document.getElementById('personCard');
+      card.innerHTML = `
+        <div class="completion-screen">
+          <div class="completion-icon">📇</div>
+          <div class="completion-title">All Done!</div>
+          <div class="completion-message">Your notes have been saved.</div>
+          <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
+        </div>
+      `;
+    }
+
+    function returnToTodaysConnection() {
+      if (savedPerson) {
+        renderPersonCard(savedPerson, false);
+      } else {
+        showTodaysPerson();
+      }
     }
 
     // Search
