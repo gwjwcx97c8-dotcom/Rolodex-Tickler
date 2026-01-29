@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Rolodex Tickler</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .header h1 {
+      color: #2c3e50;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header .tagline {
+      font-family: 'Brush Script MT', cursive;
+      color: #3498db;
+      font-size: 28px;
+      margin: 8px 0;
+    }
+
+    .header .subtitle {
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .search-bar {
+      padding: 16px 20px;
+      background: white;
+      margin: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .main-content {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .card-container {
+      perspective: 1000px;
+      min-height: 400px;
+    }
+
+    .person-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+
+    .person-card.flipping {
+      animation: cardFlip 1.5s ease-in-out;
+    }
+
+    @keyframes cardFlip {
+      0% { transform: rotateX(0deg); opacity: 1; }
+      15% { transform: rotateX(90deg) translateY(-20px); opacity: 0.7; }
+      30% { transform: rotateX(180deg) translateY(-30px); opacity: 0.5; }
+      45% { transform: rotateX(270deg) translateY(-20px); opacity: 0.7; }
+      60% { transform: rotateX(360deg) translateY(-10px); opacity: 0.8; }
+      75% { transform: rotateX(450deg) translateY(-5px); opacity: 0.9; }
+      90% { transform: rotateX(540deg) translateY(0px); opacity: 1; }
+      100% { transform: rotateX(0deg) translateY(0); opacity: 1; }
+    }
+
+    .person-name {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .contact-info {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .contact-info-item {
+      flex: 1;
+    }
+
+    .contact-info-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #7f8c8d;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .contact-info-value {
+      font-size: 15px;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+
+    .contact-method-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .contact-method-select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .contacted-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .contacted-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #7f8c8d;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+    }
+
+    .nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      cursor: pointer;
+      color: #7f8c8d;
+      font-weight: 600;
+      font-size: 14px;
+      transition: color 0.2s;
+      border: none;
+      background: none;
+    }
+
+    .nav-tab.active {
+      color: #3498db;
+    }
+
+    .nav-tab:hover {
+      color: #2980b9;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 16px;
+    }
+
+    .modal-description {
+      color: #7f8c8d;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #34495e;
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .add-person-btn {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #3498db;
+      color: white;
+      font-size: 24px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+      transition: all 0.2s;
+    }
+
+    .add-person-btn:hover {
+      background: #2980b9;
+      transform: scale(1.1);
+    }
+
+    .search-results {
+      background: white;
+      border-radius: 12px;
+      margin-top: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .search-result-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .search-result-item:hover {
+      background: #f8f9fa;
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-name {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+
+    .search-result-list {
+      font-size: 12px;
+      color: #95a5a6;
+      margin-bottom: 4px;
+    }
+
+    .search-result-snippet {
+      font-size: 14px;
+      color: #7f8c8d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Personal Rolodex Tickler</h1>
+    <div class="tagline">Stay Close</div>
+    <div class="subtitle">Today's Connection</div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search people or notes...">
+  </div>
+
+  <div id="searchResults" class="search-results" style="display: none; margin: 0 20px;"></div>
+
+  <div class="main-content">
+    <div class="card-container">
+      <div id="personCard" class="person-card">
+        <div class="empty-state">
+          <div class="empty-state-icon">📇</div>
+          <h2>No one here yet!</h2>
+          <p>Add some people to get started</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="add-person-btn" id="addPersonBtn" title="Add person">+</button>
+
+  <div class="bottom-nav">
+    <button class="nav-tab active" data-list="personal">Personal</button>
+    <button class="nav-tab" data-list="work">Work</button>
+    <button class="nav-tab" data-list="other">Other</button>
+  </div>
+
+  <!-- Initial Setup Modal -->
+  <div id="setupModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Welcome to Personal Rolodex Tickler</div>
+      <div class="modal-description">
+        Let's get started by adding some people. Enter names (one per line) and assign them to a list.
+      </div>
+      <div class="form-group">
+        <label>List Type</label>
+        <select id="setupListType">
+          <option value="personal">Personal</option>
+          <option value="work">Work</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Names (one per line)</label>
+        <textarea id="setupNames" rows="8" placeholder="Jane Doe&#10;John Smith&#10;Alex Johnson"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="skipSetup()">Skip for now</button>
+        <button class="btn-primary" onclick="completeSetup()">Add People</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Person Modal -->
+  <div id="personModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title" id="personModalTitle">Add Person</div>
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="personName" placeholder="Enter name">
+      </div>
+      <div class="form-group">
+        <label>List</label>
+        <select id="personList">
+          <option value="personal">Personal</option>
+          <option value="work">Work</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closePersonModal()">Cancel</button>
+        <button class="btn-danger" id="deletePersonBtn" style="display: none;" onclick="deletePerson()">Delete</button>
+        <button class="btn-primary" onclick="savePerson()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let people = [];
+    let currentList = 'personal';
+    let currentPerson = null;
+    let editingPersonId = null;
+    let searchActive = false;
+
+    // Initialize app
+    async function init() {
+      await loadData();
+      
+      if (people.length === 0) {
+        showSetupModal();
+      } else {
+        showTodaysPerson();
+      }
+
+      setupEventListeners();
+    }
+
+    // Persistent Storage
+    async function loadData() {
+      try {
+        const result = await window.storage.get('rolodex-people');
+        if (result && result.value) {
+          people = JSON.parse(result.value);
+        }
+      } catch (error) {
+        console.log('No existing data found or error loading:', error);
+      }
+    }
+
+    async function saveData() {
+      try {
+        await window.storage.set('rolodex-people', JSON.stringify(people));
+      } catch (error) {
+        console.error('Error saving data:', error);
+      }
+    }
+
+    async function getLastRotationDate(listType) {
+      try {
+        const result = await window.storage.get(`rotation-${listType}`);
+        return result ? result.value : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    async function setLastRotationDate(listType, date) {
+      try {
+        await window.storage.set(`rotation-${listType}`, date);
+      } catch (error) {
+        console.error('Error saving rotation date:', error);
+      }
+    }
+
+    async function getRotationIndex(listType) {
+      try {
+        const result = await window.storage.get(`rotation-index-${listType}`);
+        return result ? parseInt(result.value) : 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    async function setRotationIndex(listType, index) {
+      try {
+        await window.storage.set(`rotation-index-${listType}`, index.toString());
+      } catch (error) {
+        console.error('Error saving rotation index:', error);
+      }
+    }
+
+    // Setup Modal
+    function showSetupModal() {
+      document.getElementById('setupModal').classList.add('active');
+    }
+
+    function skipSetup() {
+      document.getElementById('setupModal').classList.remove('active');
+    }
+
+    async function completeSetup() {
+      const names = document.getElementById('setupNames').value.trim();
+      const listType = document.getElementById('setupListType').value;
+      
+      if (!names) {
+        alert('Please enter at least one name');
+        return;
+      }
+
+      const nameList = names.split('\n').map(n => n.trim()).filter(n => n);
+      
+      nameList.forEach(name => {
+        people.push({
+          id: Date.now() + Math.random(),
+          name: name,
+          list_type: listType,
+          notes_last_conversation: '',
+          notes_next_conversation: '',
+          likes: '',
+          dislikes: '',
+          relations: '',
+          gift_ideas: '',
+          preferred_contact_method: '',
+          last_contacted_date: null,
+          created_date: new Date().toISOString(),
+          status: 'active'
+        });
+      });
+
+      await saveData();
+      document.getElementById('setupModal').classList.remove('active');
+      document.getElementById('setupNames').value = '';
+      showTodaysPerson();
+    }
+
+    // Person Modal
+    function openAddPersonModal() {
+      editingPersonId = null;
+      document.getElementById('personModalTitle').textContent = 'Add Person';
+      document.getElementById('personName').value = '';
+      document.getElementById('personList').value = currentList;
+      document.getElementById('deletePersonBtn').style.display = 'none';
+      document.getElementById('personModal').classList.add('active');
+    }
+
+    function openEditPersonModal(person) {
+      editingPersonId = person.id;
+      document.getElementById('personModalTitle').textContent = 'Edit Person';
+      document.getElementById('personName').value = person.name;
+      document.getElementById('personList').value = person.list_type;
+      document.getElementById('deletePersonBtn').style.display = 'block';
+      document.getElementById('personModal').classList.add('active');
+    }
+
+    function closePersonModal() {
+      document.getElementById('personModal').classList.remove('active');
+      editingPersonId = null;
+    }
+
+    async function savePerson() {
+      const name = document.getElementById('personName').value.trim();
+      const listType = document.getElementById('personList').value;
+
+      if (!name) {
+        alert('Please enter a name');
+        return;
+      }
+
+      if (editingPersonId) {
+        const person = people.find(p => p.id === editingPersonId);
+        if (person) {
+          person.name = name;
+          person.list_type = listType;
+        }
+      } else {
+        people.push({
+          id: Date.now() + Math.random(),
+          name: name,
+          list_type: listType,
+          notes_last_conversation: '',
+          notes_next_conversation: '',
+          likes: '',
+          dislikes: '',
+          relations: '',
+          gift_ideas: '',
+          preferred_contact_method: '',
+          last_contacted_date: null,
+          created_date: new Date().toISOString(),
+          status: 'active'
+        });
+      }
+
+      await saveData();
+      closePersonModal();
+      showTodaysPerson();
+    }
+
+    async function deletePerson() {
+      if (!confirm('Are you sure you want to delete this person?')) {
+        return;
+      }
+
+      people = people.filter(p => p.id !== editingPersonId);
+      await saveData();
+      closePersonModal();
+      showTodaysPerson();
+    }
+
+    // Rotation Logic
+    async function showTodaysPerson() {
+      if (searchActive) return;
+
+      const activePeople = people.filter(p => p.list_type === currentList && p.status === 'active');
+      
+      if (activePeople.length === 0) {
+        showEmptyState();
+        return;
+      }
+
+      const today = new Date().toDateString();
+      const lastRotation = await getLastRotationDate(currentList);
+      let index = await getRotationIndex(currentList);
+
+      if (lastRotation !== today) {
+        // New day, rotate to next person
+        index = (index + 1) % activePeople.length;
+        await setRotationIndex(currentList, index);
+        await setLastRotationDate(currentList, today);
+      }
+
+      currentPerson = activePeople[index];
+      renderPersonCard(currentPerson, true);
+    }
+
+    async function skipPerson() {
+      const activePeople = people.filter(p => p.list_type === currentList && p.status === 'active');
+      
+      if (activePeople.length === 0) return;
+
+      let index = await getRotationIndex(currentList);
+      index = (index + 1) % activePeople.length;
+      await setRotationIndex(currentList, index);
+
+      currentPerson = activePeople[index];
+      renderPersonCard(currentPerson, true);
+    }
+
+    // Rendering
+    function renderPersonCard(person, animate = false) {
+      const card = document.getElementById('personCard');
+      
+      if (animate) {
+        card.classList.add('flipping');
+        setTimeout(() => {
+          updateCardContent(person);
+          card.classList.remove('flipping');
+        }, 750); // Update content at midpoint of animation
+      } else {
+        updateCardContent(person);
+      }
+    }
+
+    function updateCardContent(person) {
+      const card = document.getElementById('personCard');
+      const lastContactedDisplay = person.last_contacted_date 
+        ? new Date(person.last_contacted_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : 'Never';
+      
+      card.innerHTML = `
+        <div class="person-name">${person.name}</div>
+        
+        <div class="contact-info">
+          <div class="contact-info-item">
+            <div class="contact-info-label">Date Last Contacted</div>
+            <div class="contact-info-value">${lastContactedDisplay}</div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-label">Preferred Contact Method</div>
+            <select class="contact-method-select" onchange="updateContactMethod('${person.id}', this.value)">
+              <option value="" ${!person.preferred_contact_method ? 'selected' : ''}>Select method...</option>
+              <option value="Text" ${person.preferred_contact_method === 'Text' ? 'selected' : ''}>Text</option>
+              <option value="Email" ${person.preferred_contact_method === 'Email' ? 'selected' : ''}>Email</option>
+              <option value="Phone" ${person.preferred_contact_method === 'Phone' ? 'selected' : ''}>Phone</option>
+              <option value="SnailMail" ${person.preferred_contact_method === 'SnailMail' ? 'selected' : ''}>Snail Mail</option>
+              <option value="Social Media" ${person.preferred_contact_method === 'Social Media' ? 'selected' : ''}>Social Media Pings</option>
+              <option value="Smoke Signals" ${person.preferred_contact_method === 'Smoke Signals' ? 'selected' : ''}>Smoke Signals</option>
+              <option value="Other" ${person.preferred_contact_method === 'Other' ? 'selected' : ''}>Other</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Last Conversation</div>
+            <label class="contacted-checkbox">
+              <input type="checkbox" ${person.last_contacted_date ? 'checked' : ''} 
+                     onchange="toggleContacted('${person.id}')">
+              <span>Contacted</span>
+            </label>
+          </div>
+          <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Next Conversation Ideas</div>
+          <textarea id="nextConvo" onblur="saveNotes('${person.id}', 'notes_next_conversation')">${person.notes_next_conversation}</textarea>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Likes</div>
+          <textarea id="likes" onblur="saveNotes('${person.id}', 'likes')">${person.likes || ''}</textarea>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Dislikes</div>
+          <textarea id="dislikes" onblur="saveNotes('${person.id}', 'dislikes')">${person.dislikes || ''}</textarea>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Relations</div>
+          <textarea id="relations" onblur="saveNotes('${person.id}', 'relations')">${person.relations || ''}</textarea>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Gift Ideas</div>
+          <textarea id="giftIdeas" onblur="saveNotes('${person.id}', 'gift_ideas')">${person.gift_ideas}</textarea>
+        </div>
+        
+        <div class="actions">
+          <button class="btn-secondary" onclick="openEditPersonModal(people.find(p => p.id === '${person.id}'))">Edit Person</button>
+          <button class="btn-primary" onclick="skipPerson()">Next Person</button>
+        </div>
+      `;
+    }
+
+    function showEmptyState() {
+      const card = document.getElementById('personCard');
+      card.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📇</div>
+          <h2>No one here yet!</h2>
+          <p>Add some people to get started</p>
+        </div>
+      `;
+    }
+
+    // Notes Auto-save
+    async function saveNotes(personId, field) {
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      let value = '';
+      if (field === 'notes_last_conversation') {
+        value = document.getElementById('lastConvo').value;
+      } else if (field === 'notes_next_conversation') {
+        value = document.getElementById('nextConvo').value;
+      } else if (field === 'likes') {
+        value = document.getElementById('likes').value;
+      } else if (field === 'dislikes') {
+        value = document.getElementById('dislikes').value;
+      } else if (field === 'relations') {
+        value = document.getElementById('relations').value;
+      } else if (field === 'gift_ideas') {
+        value = document.getElementById('giftIdeas').value;
+      }
+
+      person[field] = value;
+      await saveData();
+    }
+
+    async function toggleContacted(personId) {
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      if (person.last_contacted_date) {
+        person.last_contacted_date = null;
+      } else {
+        person.last_contacted_date = new Date().toISOString();
+      }
+      
+      await saveData();
+      // Re-render to update the date display
+      renderPersonCard(person, false);
+    }
+
+    async function updateContactMethod(personId, method) {
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      person.preferred_contact_method = method;
+      await saveData();
+    }
+
+    // Search
+    function performSearch(query) {
+      if (!query.trim()) {
+        searchActive = false;
+        document.getElementById('searchResults').style.display = 'none';
+        showTodaysPerson();
+        return;
+      }
+
+      searchActive = true;
+      const results = people.filter(p => {
+        const searchText = `${p.name} ${p.notes_last_conversation} ${p.notes_next_conversation} ${p.gift_ideas}`.toLowerCase();
+        return searchText.includes(query.toLowerCase());
+      });
+
+      renderSearchResults(results, query);
+    }
+
+    function renderSearchResults(results, query) {
+      const container = document.getElementById('searchResults');
+      
+      if (results.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">No results found</div>';
+        container.style.display = 'block';
+        return;
+      }
+
+      container.innerHTML = results.map(person => {
+        const snippet = person.notes_last_conversation || person.notes_next_conversation || person.gift_ideas || 'No notes yet';
+        return `
+          <div class="search-result-item" onclick="selectSearchResult('${person.id}')">
+            <div class="search-result-name">${person.name}</div>
+            <div class="search-result-list">${person.list_type.toUpperCase()}</div>
+            <div class="search-result-snippet">${snippet}</div>
+          </div>
+        `;
+      }).join('');
+      
+      container.style.display = 'block';
+    }
+
+    function selectSearchResult(personId) {
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      searchActive = false;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchResults').style.display = 'none';
+      
+      currentList = person.list_type;
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.list === currentList);
+      });
+      
+      currentPerson = person;
+      renderPersonCard(person, false);
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentList = tab.dataset.list;
+          searchActive = false;
+          document.getElementById('searchInput').value = '';
+          document.getElementById('searchResults').style.display = 'none';
+          showTodaysPerson();
+        });
+      });
+
+      document.getElementById('addPersonBtn').addEventListener('click', openAddPersonModal);
+
+      let searchTimeout;
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          performSearch(e.target.value);
+        }, 300);
+      });
+    }
+
+    // Start the app
+    init();
+  </script>
+</body>
+</html>
