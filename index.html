@@ -291,7 +291,7 @@
     }
 
     .empty-state-icon {
-      font-size: 64px;
+      font-size: 192px;
       margin-bottom: 16px;
     }
 
@@ -527,7 +527,7 @@
     }
 
     .completion-icon {
-      font-size: 64px;
+      font-size: 192px;
       margin-bottom: 16px;
     }
 
@@ -543,6 +543,62 @@
       margin-bottom: 24px;
       line-height: 1.5;
     }
+
+    .name-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .name-list-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .name-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .name-list-name {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+
+    .name-list-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #2980b9;
+    }
+
+    .btn-remove {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-remove:hover {
+      background: #c0392b;
+    }
   </style>
 </head>
 <body>
@@ -550,6 +606,7 @@
     <div class="header-actions">
       <button class="header-btn" onclick="exportData()">Export</button>
       <button class="header-btn" onclick="document.getElementById('importFile').click()">Import</button>
+      <button class="header-btn" onclick="showNameListModal()">Show Name List</button>
       <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
     </div>
     <h1>Personal Rolodex Tickler</h1>
@@ -634,6 +691,20 @@
     </div>
   </div>
 
+  <!-- Name List Modal -->
+  <div id="nameListModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title" id="nameListTitle">Personal List</div>
+      <div class="name-list" id="nameListContainer">
+        <!-- Names will be populated here -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
+        <button class="btn-primary" onclick="enterEditMode()">Edit Names</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // State
     let people = [];
@@ -642,6 +713,92 @@
     let savedPerson = null; // Track the person we saved to return to them
     let editingPersonId = null;
     let searchActive = false;
+
+    // Name List Modal
+    let editModeActive = false;
+
+    function showNameListModal() {
+      const modal = document.getElementById('nameListModal');
+      const title = document.getElementById('nameListTitle');
+      
+      // Capitalize the list name
+      const listName = currentList.charAt(0).toUpperCase() + currentList.slice(1);
+      title.textContent = `${listName} List`;
+      
+      renderNameList();
+      modal.classList.add('active');
+    }
+
+    function closeNameListModal() {
+      document.getElementById('nameListModal').classList.remove('active');
+      editModeActive = false;
+      renderNameList(); // Reset to view mode
+    }
+
+    function renderNameList() {
+      const container = document.getElementById('nameListContainer');
+      const listPeople = people.filter(p => p.list_type === currentList);
+      
+      if (listPeople.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">No people in this list yet</div>';
+        return;
+      }
+
+      if (editModeActive) {
+        // Edit mode: show edit and remove buttons
+        container.innerHTML = listPeople.map(person => `
+          <div class="name-list-item">
+            <span class="name-list-name">${person.name}</span>
+            <div class="name-list-actions">
+              <button class="btn-small btn-edit" onclick="editPersonFromList('${person.id}')">Edit</button>
+              <button class="btn-small btn-remove" onclick="removePersonFromList('${person.id}')">Remove</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        // View mode: just show names
+        container.innerHTML = listPeople.map(person => `
+          <div class="name-list-item">
+            <span class="name-list-name">${person.name}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function enterEditMode() {
+      editModeActive = true;
+      renderNameList();
+      
+      // Update modal actions to show "Done" instead of "Edit Names"
+      const modalActions = document.querySelector('#nameListModal .modal-actions');
+      modalActions.innerHTML = `
+        <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
+        <button class="btn-primary" onclick="addPersonFromList()">Add Person</button>
+      `;
+    }
+
+    function editPersonFromList(personId) {
+      const person = people.find(p => p.id == personId);
+      if (person) {
+        closeNameListModal();
+        openEditPersonModal(person);
+      }
+    }
+
+    async function removePersonFromList(personId) {
+      if (!confirm('Are you sure you want to remove this person?')) {
+        return;
+      }
+
+      people = people.filter(p => p.id != personId);
+      await saveData();
+      renderNameList();
+    }
+
+    function addPersonFromList() {
+      closeNameListModal();
+      openAddPersonModal();
+    }
 
     // Export/Import Functions
     function exportData() {
@@ -736,12 +893,12 @@
       setupEventListeners();
     }
 
-    // Persistent Storage
+    // Persistent Storage (using localStorage for GitHub Pages)
     async function loadData() {
       try {
-        const result = await window.storage.get('rolodex-people');
-        if (result && result.value) {
-          people = JSON.parse(result.value);
+        const storedData = localStorage.getItem('rolodex-people');
+        if (storedData) {
+          people = JSON.parse(storedData);
         }
       } catch (error) {
         console.log('No existing data found or error loading:', error);
@@ -750,7 +907,7 @@
 
     async function saveData() {
       try {
-        await window.storage.set('rolodex-people', JSON.stringify(people));
+        localStorage.setItem('rolodex-people', JSON.stringify(people));
       } catch (error) {
         console.error('Error saving data:', error);
       }
@@ -758,8 +915,7 @@
 
     async function getLastRotationDate(listType) {
       try {
-        const result = await window.storage.get(`rotation-${listType}`);
-        return result ? result.value : null;
+        return localStorage.getItem(`rotation-${listType}`);
       } catch (error) {
         return null;
       }
@@ -767,7 +923,7 @@
 
     async function setLastRotationDate(listType, date) {
       try {
-        await window.storage.set(`rotation-${listType}`, date);
+        localStorage.setItem(`rotation-${listType}`, date);
       } catch (error) {
         console.error('Error saving rotation date:', error);
       }
@@ -775,8 +931,8 @@
 
     async function getRotationIndex(listType) {
       try {
-        const result = await window.storage.get(`rotation-index-${listType}`);
-        return result ? parseInt(result.value) : 0;
+        const stored = localStorage.getItem(`rotation-index-${listType}`);
+        return stored ? parseInt(stored) : 0;
       } catch (error) {
         return 0;
       }
@@ -784,7 +940,7 @@
 
     async function setRotationIndex(listType, index) {
       try {
-        await window.storage.set(`rotation-index-${listType}`, index.toString());
+        localStorage.setItem(`rotation-index-${listType}`, index.toString());
       } catch (error) {
         console.error('Error saving rotation index:', error);
       }
@@ -943,6 +1099,7 @@
       await setRotationIndex(currentList, index);
 
       currentPerson = activePeople[index];
+      savedPerson = currentPerson; // Update savedPerson so "Today's Connection" button works
       renderPersonCard(currentPerson, true);
     }
 
@@ -970,6 +1127,10 @@
       card.innerHTML = `
         <div class="today-label">Today's Connection</div>
         <div class="person-name">${person.name}</div>
+        
+        <div style="text-align: center; margin-bottom: 24px;">
+          <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
+        </div>
         
         <div class="contact-info">
           <div class="contact-info-item">
@@ -1029,8 +1190,7 @@
         </div>
         
         <div class="actions">
-          <button class="btn-secondary" onclick="openEditPersonModal(people.find(p => p.id === '${person.id}'))">Edit Person</button>
-          <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
+          <button class="btn-secondary" onclick="showCompletionScreen()">Close</button>
           <button class="btn-primary" onclick="skipPerson()">Next Person</button>
         </div>
       `;
@@ -1153,6 +1313,10 @@
       } else {
         showTodaysPerson();
       }
+    }
+
+    function returnToCompletionScreen() {
+      showCompletionScreen();
     }
 
     // Search
