@@ -115,18 +115,75 @@
     }
 
     .person-card.flipping {
-      animation: cardFlip 1.5s ease-in-out;
+      animation: cardFlipBlur 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    @keyframes cardFlip {
-      0% { transform: rotateX(0deg); opacity: 1; }
-      15% { transform: rotateX(90deg) translateY(-20px); opacity: 0.7; }
-      30% { transform: rotateX(180deg) translateY(-30px); opacity: 0.5; }
-      45% { transform: rotateX(270deg) translateY(-20px); opacity: 0.7; }
-      60% { transform: rotateX(360deg) translateY(-10px); opacity: 0.8; }
-      75% { transform: rotateX(450deg) translateY(-5px); opacity: 0.9; }
-      90% { transform: rotateX(540deg) translateY(0px); opacity: 1; }
-      100% { transform: rotateX(0deg) translateY(0); opacity: 1; }
+    @keyframes cardFlipBlur {
+      0% { 
+        transform: rotateX(0deg) scale(1); 
+        opacity: 1; 
+        filter: blur(0px);
+      }
+      8% { 
+        transform: rotateX(180deg) scale(0.95); 
+        opacity: 0.9; 
+        filter: blur(1px);
+      }
+      16% { 
+        transform: rotateX(360deg) scale(0.9); 
+        opacity: 0.85; 
+        filter: blur(2px);
+      }
+      24% { 
+        transform: rotateX(720deg) scale(0.85); 
+        opacity: 0.75; 
+        filter: blur(3px);
+      }
+      32% { 
+        transform: rotateX(1080deg) scale(0.82); 
+        opacity: 0.65; 
+        filter: blur(4px);
+      }
+      40% { 
+        transform: rotateX(1440deg) scale(0.8); 
+        opacity: 0.6; 
+        filter: blur(5px);
+      }
+      50% { 
+        transform: rotateX(1800deg) scale(0.8); 
+        opacity: 0.6; 
+        filter: blur(6px);
+      }
+      60% { 
+        transform: rotateX(2160deg) scale(0.8); 
+        opacity: 0.6; 
+        filter: blur(5px);
+      }
+      68% { 
+        transform: rotateX(2520deg) scale(0.82); 
+        opacity: 0.65; 
+        filter: blur(4px);
+      }
+      76% { 
+        transform: rotateX(2880deg) scale(0.85); 
+        opacity: 0.75; 
+        filter: blur(3px);
+      }
+      84% { 
+        transform: rotateX(3060deg) scale(0.9); 
+        opacity: 0.85; 
+        filter: blur(2px);
+      }
+      92% { 
+        transform: rotateX(3150deg) scale(0.95); 
+        opacity: 0.95; 
+        filter: blur(1px);
+      }
+      100% { 
+        transform: rotateX(3240deg) scale(1); 
+        opacity: 1; 
+        filter: blur(0px);
+      }
     }
 
     .person-name {
@@ -135,6 +192,25 @@
       color: #2c3e50;
       margin-bottom: 24px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .person-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      font-family: 'Brush Script MT', cursive;
+      color: white;
+      flex-shrink: 0;
     }
 
     .today-label {
@@ -544,6 +620,53 @@
       line-height: 1.5;
     }
 
+    .log-section {
+      margin-bottom: 24px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 2px solid #e0e0e0;
+    }
+
+    .log-container {
+      max-height: 160px;
+      overflow-y: auto;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .log-entry {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .log-entry:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .log-date {
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .log-text {
+      color: #34495e;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .log-empty {
+      color: #95a5a6;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+
     .name-list {
       max-height: 400px;
       overflow-y: auto;
@@ -716,6 +839,45 @@
 
     // Name List Modal
     let editModeActive = false;
+
+    // Generate consistent color for a person based on their name
+    function getAvatarColor(name) {
+      const colors = [
+        '#e74c3c', // red
+        '#3498db', // blue
+        '#2ecc71', // green
+        '#f39c12', // orange
+        '#9b59b6', // purple
+        '#1abc9c', // turquoise
+        '#e67e22', // carrot
+        '#34495e', // dark blue
+        '#16a085', // green sea
+        '#c0392b', // dark red
+        '#8e44ad', // wisteria
+        '#2980b9', // belize blue
+        '#27ae60', // nephritis
+        '#d35400', // pumpkin
+        '#2c3e50', // midnight blue
+      ];
+      
+      // Simple hash function based on name
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    function getInitials(name) {
+      const parts = name.trim().split(' ');
+      if (parts.length === 1) {
+        return parts[0].charAt(0).toUpperCase();
+      }
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    // Name List Modal
 
     function showNameListModal() {
       const modal = document.getElementById('nameListModal');
@@ -978,6 +1140,7 @@
           relations: '',
           gift_ideas: '',
           preferred_contact_method: '',
+          conversation_log: [],
           last_contacted_date: null,
           created_date: new Date().toISOString(),
           status: 'active'
@@ -1041,6 +1204,7 @@
           relations: '',
           gift_ideas: '',
           preferred_contact_method: '',
+          conversation_log: [],
           last_contacted_date: null,
           created_date: new Date().toISOString(),
           status: 'active'
@@ -1112,7 +1276,7 @@
         setTimeout(() => {
           updateCardContent(person);
           card.classList.remove('flipping');
-        }, 750); // Update content at midpoint of animation
+        }, 1100); // Update content at midpoint of 2.2s animation
       } else {
         updateCardContent(person);
       }
@@ -1124,9 +1288,38 @@
         ? new Date(person.last_contacted_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         : 'Never';
       
+      // Ensure conversation_log exists (for backwards compatibility)
+      if (!person.conversation_log) {
+        person.conversation_log = [];
+      }
+
+      // Generate log HTML
+      let logHTML = '';
+      if (person.conversation_log.length === 0) {
+        logHTML = '<div class="log-empty">No conversation history yet</div>';
+      } else {
+        logHTML = person.conversation_log.map(entry => `
+          <div class="log-entry">
+            <div class="log-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit'
+            })}</div>
+            <div class="log-text">${entry.text}</div>
+          </div>
+        `).join('');
+      }
+      
       card.innerHTML = `
         <div class="today-label">Today's Connection</div>
-        <div class="person-name">${person.name}</div>
+        <div class="person-name">
+          <div class="person-avatar" style="background-color: ${getAvatarColor(person.name)}">
+            ${getInitials(person.name)}
+          </div>
+          <span>${person.name}</span>
+        </div>
         
         <div style="text-align: center; margin-bottom: 24px;">
           <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
@@ -1165,7 +1358,7 @@
         </div>
         
         <div class="section">
-          <div class="section-title">Next Conversation Ideas</div>
+          <div class="section-title">Next Conversation Ideas / Next Steps</div>
           <textarea id="nextConvo" onblur="saveNotes('${person.id}', 'notes_next_conversation')">${person.notes_next_conversation}</textarea>
         </div>
         
@@ -1187,6 +1380,13 @@
         <div class="section">
           <div class="section-title">Gift Ideas</div>
           <textarea id="giftIdeas" onblur="saveNotes('${person.id}', 'gift_ideas')">${person.gift_ideas}</textarea>
+        </div>
+
+        <div class="log-section">
+          <div class="section-title">Conversation Log</div>
+          <div class="log-container">
+            ${logHTML}
+          </div>
         </div>
         
         <div class="actions">
@@ -1259,10 +1459,25 @@
       const person = people.find(p => p.id == personId);
       if (!person) return;
 
-      // Manually save all fields
-      if (document.getElementById('lastConvo')) {
-        person.notes_last_conversation = document.getElementById('lastConvo').value;
+      // Ensure conversation_log exists
+      if (!person.conversation_log) {
+        person.conversation_log = [];
       }
+
+      // Get the last conversation text
+      const lastConvoText = document.getElementById('lastConvo') ? document.getElementById('lastConvo').value.trim() : '';
+
+      // If there's content in Last Conversation, add it to the log
+      if (lastConvoText) {
+        person.conversation_log.unshift({
+          date: new Date().toISOString(),
+          text: lastConvoText
+        });
+        // Clear the Last Conversation field
+        person.notes_last_conversation = '';
+      }
+
+      // Save all other fields
       if (document.getElementById('nextConvo')) {
         person.notes_next_conversation = document.getElementById('nextConvo').value;
       }
