@@ -61,9 +61,12 @@
     }
 
     .header .tagline {
-      font-family: 'Brush Script MT', cursive;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       color: #3498db;
-      font-size: 28px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
       margin: 8px 0;
     }
 
@@ -76,7 +79,7 @@
     .search-bar {
       padding: 16px 20px;
       background: white;
-      margin: 16px 20px;
+      margin: 16px 20px 8px 20px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
@@ -96,7 +99,7 @@
     }
 
     .main-content {
-      padding: 20px;
+      padding: 8px 20px 20px 20px;
       max-width: 800px;
       margin: 0 auto;
     }
@@ -983,7 +986,7 @@
       <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
     </div>
     <h1 style="cursor: pointer;" onclick="showCompletionCircle()">Circle of Friends</h1>
-    <div class="tagline">Stay Close</div>
+    <div class="tagline">S  t  a  y    C  l  o  s  e</div>
   </div>
 
   <div class="search-bar">
@@ -1143,11 +1146,7 @@
     }
 
     function getInitials(name) {
-      const parts = name.trim().split(' ');
-      if (parts.length === 1) {
-        return parts[0].charAt(0).toUpperCase();
-      }
-      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+      return name.trim().charAt(0).toUpperCase();
     }
 
     // Name List Modal
@@ -1714,16 +1713,15 @@
               <span>Contacted</span>
             </label>
           </div>
+          <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
           <div class="quick-notes-section">
             <div class="quick-notes-buttons">
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '☕ Had coffee')">☕ Had coffee</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '📞 Phone call')">📞 Phone call</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '💬 Quick text')">💬 Quick text</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '🍽️ Grabbed lunch')">🍽️ Grabbed lunch</button>
-              <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '🎉 Celebrated together')">🎉 Celebrated together</button>
             </div>
           </div>
-          <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
         </div>
         
         <div class="section">
