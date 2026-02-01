@@ -19,10 +19,40 @@
     }
 
     .header {
-      background: white;
+      background: #B2ADD9;
       padding: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
+      position: relative;
+    }
+
+    .header-oval {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 110px;
+      background: #B48FCC;
+      border: 5px solid #B48FCC;
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .header-actions {
+      position: relative;
+      z-index: 2;
+    }
+
+    .header h1 {
+      position: relative;
+      z-index: 2;
+    }
+
+    .header .tagline {
+      position: relative;
+      z-index: 2;
     }
 
     .header-actions {
@@ -34,19 +64,32 @@
 
     .header-btn {
       padding: 8px 16px;
-      border: 2px solid #3498db;
-      background: white;
-      color: #3498db;
+      border: none;
       border-radius: 6px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      color: white;
+      background: #261433;
     }
 
-    .header-btn:hover {
-      background: #3498db;
-      color: white;
+    .header-btn.export-import {
+      background: #8850AF;
+    }
+
+    .header-btn.export-import:hover {
+      background: #72429C;
+      transform: translateY(-1px);
+    }
+
+    .header-btn.show-list {
+      background: #261433;
+    }
+
+    .header-btn.show-list:hover {
+      background: #3A1F4D;
+      transform: translateY(-1px);
     }
 
     .hidden-file-input {
@@ -55,14 +98,34 @@
 
     .header h1 {
       font-family: 'Brush Script MT', cursive;
-      color: #2c3e50;
+      color: #3D1F47;
       font-size: 40px;
       font-weight: 700;
+      position: relative;
+    }
+
+    .circle-tooltip {
+      position: fixed;
+      background: rgba(61, 31, 71, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 10000;
+      white-space: nowrap;
+    }
+
+    .circle-tooltip.show {
+      opacity: 1;
     }
 
     .header .tagline {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      color: #3498db;
+      color: white;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -336,23 +399,23 @@
     }
 
     .btn-primary {
-      background: #3498db;
-      color: white;
+      background: #C9ABDE;
+      color: #333;
     }
 
     .btn-primary:hover {
-      background: #2980b9;
+      background: #B898CC;
       transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 4px 8px rgba(201, 171, 222, 0.3);
     }
 
     .btn-secondary {
-      background: #95a5a6;
-      color: white;
+      background: #DCCEEB;
+      color: #333;
     }
 
     .btn-secondary:hover {
-      background: #7f8c8d;
+      background: #CABDD9;
     }
 
     .btn-danger {
@@ -475,6 +538,22 @@
       font-weight: 700;
       color: #2c3e50;
       margin-bottom: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-header .modal-title {
+      margin-bottom: 0;
+    }
+
+    .modal-header-actions {
+      display: flex;
+      gap: 8px;
     }
 
     .modal-description {
@@ -821,8 +900,8 @@
     }
 
     .circle-dot.contacted {
-      background: #27ae60;
-      border: 2px solid #27ae60;
+      background: #C8ADD9;
+      border: 2px solid #C8ADD9;
     }
 
     .circle-dot.not-contacted {
@@ -916,6 +995,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-top: 8px;
+      justify-content: space-between;
     }
 
     .quick-note-btn {
@@ -939,7 +1019,9 @@
       display: flex;
       gap: 8px;
       margin-top: 12px;
+      margin-bottom: 0;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .contact-action-btn {
@@ -979,14 +1061,15 @@
 </head>
 <body>
   <div class="header">
+    <div class="header-oval"></div>
     <div class="header-actions">
-      <button class="header-btn" onclick="exportData()">Export</button>
-      <button class="header-btn" onclick="showNameListModal()">Show Name List</button>
-      <button class="header-btn" onclick="document.getElementById('importFile').click()">Import</button>
+      <button class="header-btn export-import" onclick="exportData()">Export</button>
+      <button class="header-btn show-list" onclick="showNameListModal()">Show Name List</button>
+      <button class="header-btn export-import" onclick="document.getElementById('importFile').click()">Import</button>
       <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
     </div>
-    <h1 style="cursor: pointer;" onclick="showCompletionCircle()">Circle of Friends</h1>
-    <div class="tagline">S  t  a  y    C  l  o  s  e</div>
+    <h1 style="cursor: pointer;" onclick="showCompletionCircle()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle of Friends</h1>
+    <div class="tagline">S    t    a    y                        C    l    o    s    e</div>
   </div>
 
   <div class="search-bar">
@@ -1078,13 +1161,15 @@
   <!-- Name List Modal -->
   <div id="nameListModal" class="modal">
     <div class="modal-content">
-      <div class="modal-title" id="nameListTitle">Personal List</div>
+      <div class="modal-header">
+        <div class="modal-title" id="nameListTitle">Personal List</div>
+        <div class="modal-header-actions">
+          <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
+          <button class="btn-primary" onclick="enterEditMode()">Edit Names</button>
+        </div>
+      </div>
       <div class="name-list" id="nameListContainer">
         <!-- Names will be populated here -->
-      </div>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
-        <button class="btn-primary" onclick="enterEditMode()">Edit Names</button>
       </div>
     </div>
   </div>
@@ -1100,6 +1185,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Circle Tooltip -->
+  <div id="circleTooltip" class="circle-tooltip">See Your Circle</div>
 
   <!-- Confetti Canvas -->
   <canvas id="confettiCanvas"></canvas>
@@ -1171,7 +1259,8 @@
 
     function renderNameList() {
       const container = document.getElementById('nameListContainer');
-      const listPeople = people.filter(p => p.list_type === currentList);
+      const listPeople = people.filter(p => p.list_type === currentList)
+        .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
       
       if (listPeople.length === 0) {
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">No people in this list yet</div>';
@@ -1218,8 +1307,8 @@
       editModeActive = true;
       renderNameList();
       
-      // Update modal actions to show "Done" instead of "Edit Names"
-      const modalActions = document.querySelector('#nameListModal .modal-actions');
+      // Update modal header actions to show "Add Person" instead of "Edit Names"
+      const modalActions = document.querySelector('#nameListModal .modal-header-actions');
       modalActions.innerHTML = `
         <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
         <button class="btn-primary" onclick="addPersonFromList()">Add Person</button>
@@ -1698,12 +1787,6 @@
           </div>
         </div>
         
-        <div class="contact-actions">
-          ${person.email ? `<a href="mailto:${person.email}" class="contact-action-btn email">📧 Email</a>` : ''}
-          ${person.phone ? `<a href="tel:${person.phone}" class="contact-action-btn phone">📞 Call</a>` : ''}
-          ${person.phone ? `<a href="sms:${person.phone}" class="contact-action-btn sms">💬 Text</a>` : ''}
-        </div>
-        
         <div class="section">
           <div class="section-header">
             <div class="section-title">Last Conversation</div>
@@ -1713,7 +1796,6 @@
               <span>Contacted</span>
             </label>
           </div>
-          <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
           <div class="quick-notes-section">
             <div class="quick-notes-buttons">
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '☕ Had coffee')">☕ Had coffee</button>
@@ -1721,6 +1803,12 @@
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '💬 Quick text')">💬 Quick text</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '🍽️ Grabbed lunch')">🍽️ Grabbed lunch</button>
             </div>
+          </div>
+          <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
+          <div class="contact-actions">
+            ${person.email ? `<a href="mailto:${person.email}" class="contact-action-btn email">📧 Email</a>` : ''}
+            ${person.phone ? `<a href="tel:${person.phone}" class="contact-action-btn phone">📞 Call</a>` : ''}
+            ${person.phone ? `<a href="sms:${person.phone}" class="contact-action-btn sms">💬 Text</a>` : ''}
           </div>
         </div>
         
@@ -2188,6 +2276,24 @@
         saveData();
         renderPersonCard(person, false);
       }
+    }
+
+    // Circle Tooltip
+    function showCircleTooltip(event) {
+      const tooltip = document.getElementById('circleTooltip');
+      tooltip.classList.add('show');
+      moveCircleTooltip(event);
+    }
+
+    function moveCircleTooltip(event) {
+      const tooltip = document.getElementById('circleTooltip');
+      tooltip.style.left = (event.clientX + 15) + 'px';
+      tooltip.style.top = (event.clientY + 15) + 'px';
+    }
+
+    function hideCircleTooltip() {
+      const tooltip = document.getElementById('circleTooltip');
+      tooltip.classList.remove('show');
     }
 
     // Start the app
