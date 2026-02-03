@@ -19,7 +19,7 @@
     }
 
     .header {
-      background: #B2ADD9;
+      background: #DECEE9;
       padding: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
@@ -260,10 +260,26 @@
       margin-bottom: 24px;
       text-align: center;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
       gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .name-toggle-arrow {
+      background: transparent;
+      border: none;
+      font-size: 36px;
+      color: #8850AF;
+      cursor: pointer;
+      padding: 4px 12px;
+      transition: all 0.2s;
+    }
+
+    .name-toggle-arrow:hover {
+      color: #3D1F47;
+      transform: scale(1.2);
     }
 
     .person-avatar {
@@ -1161,11 +1177,12 @@
   <!-- Name List Modal -->
   <div id="nameListModal" class="modal">
     <div class="modal-content">
+      <button class="completion-circle-close" onclick="closeNameListModal()">×</button>
       <div class="modal-header">
         <div class="modal-title" id="nameListTitle">Personal List</div>
         <div class="modal-header-actions">
-          <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
-          <button class="btn-primary" onclick="enterEditMode()">Edit Names</button>
+          <button class="btn-primary" id="editNamesBtn" onclick="enterEditMode()">Edit Names</button>
+          <button class="btn-primary" id="addPersonBtn2" style="display: none;" onclick="addPersonFromList()">Add Person</button>
         </div>
       </div>
       <div class="name-list" id="nameListContainer">
@@ -1254,6 +1271,9 @@
     function closeNameListModal() {
       document.getElementById('nameListModal').classList.remove('active');
       editModeActive = false;
+      // Reset button visibility
+      document.getElementById('editNamesBtn').style.display = 'block';
+      document.getElementById('addPersonBtn2').style.display = 'none';
       renderNameList(); // Reset to view mode
     }
 
@@ -1307,12 +1327,18 @@
       editModeActive = true;
       renderNameList();
       
-      // Update modal header actions to show "Add Person" instead of "Edit Names"
-      const modalActions = document.querySelector('#nameListModal .modal-header-actions');
-      modalActions.innerHTML = `
-        <button class="btn-secondary" onclick="closeNameListModal()">Cancel</button>
-        <button class="btn-primary" onclick="addPersonFromList()">Add Person</button>
-      `;
+      // Toggle button visibility
+      document.getElementById('editNamesBtn').style.display = 'none';
+      document.getElementById('addPersonBtn2').style.display = 'block';
+    }
+
+    function exitEditMode() {
+      editModeActive = false;
+      renderNameList();
+      
+      // Toggle button visibility back
+      document.getElementById('editNamesBtn').style.display = 'block';
+      document.getElementById('addPersonBtn2').style.display = 'none';
     }
 
     function editPersonFromList(personId) {
@@ -1754,16 +1780,23 @@
       card.innerHTML = `
         <div class="today-label">Today's Connection</div>
         <div class="person-name">
+          <button class="name-toggle-arrow" onclick="toggleToPreviousPerson()" title="Previous Person">◀</button>
           <div class="person-avatar" style="background-color: ${getAvatarColor(person.name)}">
             ${getInitials(person.name)}
           </div>
           <span>${person.name}</span>
+          <input type="checkbox" ${person.last_contacted_date ? 'checked' : ''} 
+                 onchange="toggleContacted('${person.id}')" 
+                 style="margin-left: 12px; width: 20px; height: 20px; cursor: pointer;"
+                 title="Contacted">
+          <button class="name-toggle-arrow" onclick="toggleToNextPerson()" title="Next Person">▶</button>
         </div>
         
         <div class="actions">
           <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
           <button class="btn-secondary" onclick="showCompletionScreen()">Close</button>
-          <button class="btn-primary" onclick="skipPerson()">Next Person</button>
+          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-secondary" onclick="editCurrentPerson('${person.id}')">Edit Contact Info</button>
         </div>
         
         <div class="contact-info">
@@ -1847,7 +1880,7 @@
         <div class="actions">
           <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
           <button class="btn-secondary" onclick="showCompletionScreen()">Close</button>
-          <button class="btn-primary" onclick="skipPerson()">Next Person</button>
+          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
         </div>
       `;
     }
@@ -1974,7 +2007,7 @@
           <div class="completion-title">All Done!</div>
           <div class="completion-message">Your notes have been saved.</div>
           <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
-          <button class="btn-primary" onclick="skipPerson()">Next Person</button>
+          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
           <button class="btn-secondary" onclick="showNameListModal()">Show Name List</button>
         </div>
       `;
@@ -2276,6 +2309,37 @@
         saveData();
         renderPersonCard(person, false);
       }
+    }
+
+    // Toggle between all people in list
+    function toggleToNextPerson() {
+      const allPeople = people.filter(p => p.list_type === currentList && p.status === 'active');
+      if (allPeople.length === 0) return;
+      
+      const currentIndex = allPeople.findIndex(p => p.id === currentPerson.id);
+      const nextIndex = (currentIndex + 1) % allPeople.length;
+      
+      currentPerson = allPeople[nextIndex];
+      savedPerson = currentPerson;
+      renderPersonCard(currentPerson, true);
+    }
+
+    function toggleToPreviousPerson() {
+      const allPeople = people.filter(p => p.list_type === currentList && p.status === 'active');
+      if (allPeople.length === 0) return;
+      
+      const currentIndex = allPeople.findIndex(p => p.id === currentPerson.id);
+      const previousIndex = currentIndex === 0 ? allPeople.length - 1 : currentIndex - 1;
+      
+      currentPerson = allPeople[previousIndex];
+      savedPerson = currentPerson;
+      renderPersonCard(currentPerson, true);
+    }
+
+    function editCurrentPerson(personId) {
+      // Open the name list modal in edit mode
+      showNameListModal();
+      enterEditMode();
     }
 
     // Circle Tooltip
