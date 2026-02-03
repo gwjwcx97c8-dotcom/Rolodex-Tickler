@@ -267,6 +267,28 @@
       flex-wrap: wrap;
     }
 
+    .person-header-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .person-name-text {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .person-checkbox {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
     .name-toggle-arrow {
       background: transparent;
       border: none;
@@ -401,6 +423,7 @@
       display: flex;
       gap: 12px;
       margin-top: 24px;
+      margin-bottom: 32px;
       justify-content: center;
     }
 
@@ -1779,22 +1802,23 @@
       
       card.innerHTML = `
         <div class="today-label">Today's Connection</div>
-        <div class="person-name">
+        <div class="person-header-section">
           <button class="name-toggle-arrow" onclick="toggleToPreviousPerson()" title="Previous Person">◀</button>
           <div class="person-avatar" style="background-color: ${getAvatarColor(person.name)}">
             ${getInitials(person.name)}
           </div>
-          <span>${person.name}</span>
+          <button class="name-toggle-arrow" onclick="toggleToNextPerson()" title="Next Person">▶</button>
+        </div>
+        <div class="person-name-text">${person.name}</div>
+        <div class="person-checkbox">
           <input type="checkbox" ${person.last_contacted_date ? 'checked' : ''} 
                  onchange="toggleContacted('${person.id}')" 
-                 style="margin-left: 12px; width: 20px; height: 20px; cursor: pointer;"
+                 style="width: 20px; height: 20px; cursor: pointer;"
                  title="Contacted">
-          <button class="name-toggle-arrow" onclick="toggleToNextPerson()" title="Next Person">▶</button>
         </div>
         
         <div class="actions">
-          <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
-          <button class="btn-secondary" onclick="showCompletionScreen()">Close</button>
+          <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
           <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
           <button class="btn-secondary" onclick="editCurrentPerson('${person.id}')">Edit Contact Info</button>
         </div>
@@ -1878,8 +1902,7 @@
         </div>
         
         <div class="actions">
-          <button class="btn-primary" onclick="saveAndComplete('${person.id}')">Save</button>
-          <button class="btn-secondary" onclick="showCompletionScreen()">Close</button>
+          <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
           <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
         </div>
       `;
@@ -1997,6 +2020,55 @@
         popup.classList.remove('show');
         showCompletionScreen();
       }, 2000);
+    }
+
+    async function saveAndClose(personId) {
+      // Save all current notes
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      // Ensure conversation_log exists
+      if (!person.conversation_log) {
+        person.conversation_log = [];
+      }
+
+      // Get the last conversation text
+      const lastConvoText = document.getElementById('lastConvo') ? document.getElementById('lastConvo').value.trim() : '';
+
+      // If there's content in Last Conversation, add it to the log
+      if (lastConvoText) {
+        person.conversation_log.unshift({
+          date: new Date().toISOString(),
+          text: lastConvoText
+        });
+        // Clear the Last Conversation field
+        person.notes_last_conversation = '';
+      }
+
+      // Save all other fields
+      if (document.getElementById('nextConvo')) {
+        person.notes_next_conversation = document.getElementById('nextConvo').value;
+      }
+      if (document.getElementById('giftIdeas')) {
+        person.gift_ideas = document.getElementById('giftIdeas').value;
+      }
+      if (document.getElementById('likes')) {
+        person.likes = document.getElementById('likes').value;
+      }
+      if (document.getElementById('dislikes')) {
+        person.dislikes = document.getElementById('dislikes').value;
+      }
+      if (document.getElementById('relations')) {
+        person.relations = document.getElementById('relations').value;
+      }
+
+      await saveData();
+
+      // Store the person we're saving to return to them later
+      savedPerson = person;
+
+      // Show completion screen directly
+      showCompletionScreen();
     }
 
     function showCompletionScreen() {
