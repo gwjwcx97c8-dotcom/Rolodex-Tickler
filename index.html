@@ -28,13 +28,13 @@
 
     .header-oval {
       position: absolute;
-      top: 55%;
+      top: 65%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 500px;
       height: 110px;
-      background: #B48FCC;
-      border: 5px solid #B48FCC;
+      background: #BE98D6;
+      border: 5px solid #BE98D6;
       border-radius: 50%;
       z-index: 0;
       pointer-events: none;
@@ -121,6 +121,48 @@
 
     .circle-tooltip.show {
       opacity: 1;
+    }
+
+    .storage-indicator {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      opacity: 0.8;
+    }
+
+    .settings-section {
+      margin-bottom: 24px;
+    }
+
+    .settings-section h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 12px;
+    }
+
+    .settings-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .settings-toggle input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .notification-status {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #666;
     }
 
     .header .tagline {
@@ -1101,13 +1143,15 @@
 <body>
   <div class="header">
     <div class="header-oval"></div>
+    <div id="storageIndicator" class="storage-indicator"></div>
     <div class="header-actions">
       <button class="header-btn export-import" onclick="exportData()">Export</button>
       <button class="header-btn show-list" onclick="showNameListModal()">Show Name List</button>
       <button class="header-btn export-import" onclick="document.getElementById('importFile').click()">Import</button>
+      <button class="header-btn show-list" onclick="showSettingsModal()">⚙️ Settings</button>
       <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
     </div>
-    <h1 style="cursor: pointer;" onclick="showCompletionCircle()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle of Friends</h1>
+    <h1 style="cursor: pointer;" onclick="showCompletionCircle()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle Of Friends</h1>
     <div class="tagline">S    t    a    y                        C    l    o    s    e</div>
   </div>
 
@@ -1214,6 +1258,34 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <button class="completion-circle-close" onclick="closeSettingsModal()">×</button>
+      <div class="modal-title">Settings</div>
+      
+      <div class="settings-section">
+        <h3>Daily Reminders</h3>
+        <label class="settings-toggle">
+          <input type="checkbox" id="notificationsEnabled" onchange="toggleNotifications()">
+          <span>Enable daily reminders</span>
+        </label>
+        
+        <div id="notificationSettings" style="display: none; margin-top: 16px;">
+          <div class="form-group">
+            <label>Reminder Time</label>
+            <input type="time" id="reminderTime" value="09:00" onchange="saveReminderTime()">
+          </div>
+          <div class="notification-status" id="notificationStatus"></div>
+        </div>
+      </div>
+      
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button class="btn-primary" onclick="closeSettingsModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Completion Circle Modal -->
   <div id="completionCircleModal" class="completion-circle-modal">
     <div class="completion-circle-content">
@@ -1275,6 +1347,96 @@
 
     function getInitials(name) {
       return name.trim().charAt(0).toUpperCase();
+    }
+
+    function getZodiacSign(birthday) {
+      if (!birthday) return '';
+      
+      const date = new Date(birthday);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      // Zodiac date ranges
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return '♈'; // Aries
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return '♉'; // Taurus
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return '♊'; // Gemini
+      if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return '♋'; // Cancer
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return '♌'; // Leo
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return '♍'; // Virgo
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return '♎'; // Libra
+      if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return '♏'; // Scorpio
+      if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return '♐'; // Sagittarius
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return '♑'; // Capricorn
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return '♒'; // Aquarius
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return '♓'; // Pisces
+      
+      return '';
+    }
+
+    function getZodiacName(birthday) {
+      if (!birthday) return '';
+      
+      const date = new Date(birthday);
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Aries';
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Taurus';
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'Gemini';
+      if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Cancer';
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Leo';
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Virgo';
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Libra';
+      if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Scorpio';
+      if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Sagittarius';
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Capricorn';
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Aquarius';
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Pisces';
+      
+      return '';
+    }
+
+    function getChineseZodiacSign(birthday) {
+      if (!birthday) return '';
+      
+      const date = new Date(birthday);
+      const year = date.getFullYear();
+      
+      // Chinese zodiac is based on a 12-year cycle
+      // Years are offset from 1924 (Year of the Rat)
+      const animals = ['🐀', '🐂', '🐅', '🐇', '🐉', '🐍', '🐎', '🐐', '🐒', '🐓', '🐕', '🐖'];
+      const index = (year - 1924) % 12;
+      
+      return animals[index];
+    }
+
+    function getChineseZodiacName(birthday) {
+      if (!birthday) return '';
+      
+      const date = new Date(birthday);
+      const year = date.getFullYear();
+      
+      const animalNames = ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'];
+      const index = (year - 1924) % 12;
+      
+      return animalNames[index];
+    }
+
+    function getGeneration(birthday) {
+      if (!birthday) return '';
+      
+      const date = new Date(birthday);
+      const year = date.getFullYear();
+      
+      if (year >= 1928 && year <= 1945) return 'Silent Generation';
+      if (year >= 1946 && year <= 1964) return 'Baby Boomer';
+      if (year >= 1965 && year <= 1980) return 'Gen X';
+      if (year >= 1981 && year <= 1996) return 'Millennial';
+      if (year >= 1997 && year <= 2012) return 'Gen Z';
+      if (year >= 2013) return 'Gen Alpha';
+      if (year < 1928) return 'Greatest Generation';
+      
+      return '';
     }
 
     // Name List Modal
@@ -1470,6 +1632,7 @@
     // Initialize app
     async function init() {
       await loadData();
+      updateStorageIndicator();
       
       if (people.length === 0) {
         showSetupModal();
@@ -1480,14 +1643,47 @@
       }
 
       setupEventListeners();
+      
+      // Initialize notifications if enabled
+      const notificationsEnabled = localStorage.getItem('notifications-enabled') === 'true';
+      if (notificationsEnabled) {
+        await checkNotificationPermission();
+      }
+    }
+
+    function updateStorageIndicator() {
+      const indicator = document.getElementById('storageIndicator');
+      if (window.storage) {
+        indicator.textContent = '☁️ Cloud Sync Enabled';
+        indicator.style.color = '#C9B5D9';
+      } else {
+        indicator.textContent = '💾 Local Storage Mode';
+        indicator.style.color = '#666';
+      }
     }
 
     // Persistent Storage (using localStorage for GitHub Pages)
     async function loadData() {
       try {
+        // Try Anthropic storage first (when running in Claude.ai)
+        if (window.storage) {
+          try {
+            const result = await window.storage.get('circle-of-friends-people');
+            if (result && result.value) {
+              people = JSON.parse(result.value);
+              console.log('Loaded data from Anthropic cloud storage');
+              return;
+            }
+          } catch (error) {
+            console.log('Anthropic storage not available or empty, trying localStorage');
+          }
+        }
+        
+        // Fall back to localStorage (standalone mode)
         const storedData = localStorage.getItem('rolodex-people');
         if (storedData) {
           people = JSON.parse(storedData);
+          console.log('Loaded data from localStorage');
         }
       } catch (error) {
         console.log('No existing data found or error loading:', error);
@@ -1496,7 +1692,21 @@
 
     async function saveData() {
       try {
-        localStorage.setItem('rolodex-people', JSON.stringify(people));
+        const dataString = JSON.stringify(people);
+        
+        // Try Anthropic storage first (when running in Claude.ai)
+        if (window.storage) {
+          try {
+            await window.storage.set('circle-of-friends-people', dataString);
+            console.log('Saved data to Anthropic cloud storage');
+          } catch (error) {
+            console.log('Anthropic storage save failed, using localStorage:', error);
+          }
+        }
+        
+        // Always also save to localStorage as backup
+        localStorage.setItem('rolodex-people', dataString);
+        console.log('Saved data to localStorage');
       } catch (error) {
         console.error('Error saving data:', error);
       }
@@ -1504,6 +1714,17 @@
 
     async function getLastRotationDate(listType) {
       try {
+        // Try Anthropic storage first
+        if (window.storage) {
+          try {
+            const result = await window.storage.get(`rotation-${listType}`);
+            if (result && result.value) {
+              return result.value;
+            }
+          } catch (error) {
+            // Fall through to localStorage
+          }
+        }
         return localStorage.getItem(`rotation-${listType}`);
       } catch (error) {
         return null;
@@ -1512,6 +1733,14 @@
 
     async function setLastRotationDate(listType, date) {
       try {
+        // Save to both storages
+        if (window.storage) {
+          try {
+            await window.storage.set(`rotation-${listType}`, date);
+          } catch (error) {
+            // Continue to localStorage
+          }
+        }
         localStorage.setItem(`rotation-${listType}`, date);
       } catch (error) {
         console.error('Error saving rotation date:', error);
@@ -1520,6 +1749,17 @@
 
     async function getRotationIndex(listType) {
       try {
+        // Try Anthropic storage first
+        if (window.storage) {
+          try {
+            const result = await window.storage.get(`rotation-index-${listType}`);
+            if (result && result.value) {
+              return parseInt(result.value);
+            }
+          } catch (error) {
+            // Fall through to localStorage
+          }
+        }
         const stored = localStorage.getItem(`rotation-index-${listType}`);
         return stored ? parseInt(stored) : 0;
       } catch (error) {
@@ -1529,7 +1769,16 @@
 
     async function setRotationIndex(listType, index) {
       try {
-        localStorage.setItem(`rotation-index-${listType}`, index.toString());
+        const indexStr = index.toString();
+        // Save to both storages
+        if (window.storage) {
+          try {
+            await window.storage.set(`rotation-index-${listType}`, indexStr);
+          } catch (error) {
+            // Continue to localStorage
+          }
+        }
+        localStorage.setItem(`rotation-index-${listType}`, indexStr);
       } catch (error) {
         console.error('Error saving rotation index:', error);
       }
@@ -1858,7 +2107,7 @@
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '☕ Had coffee')">☕ Had coffee</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '📞 Phone call')">📞 Phone call</button>
               <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '💬 Quick text')">💬 Quick text</button>
-              <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '🍽️ Grabbed lunch')">🍽️ Grabbed lunch</button>
+              <button class="quick-note-btn" onclick="addQuickNote('${person.id}', '📱 Media Pinged')">📱 Media Pinged</button>
             </div>
           </div>
           <textarea id="lastConvo" onblur="saveNotes('${person.id}', 'notes_last_conversation')">${person.notes_last_conversation}</textarea>
@@ -1890,8 +2139,20 @@
         </div>
         
         <div class="section">
+          <div class="section-title">Birthday</div>
+          <input type="date" id="birthday" value="${person.birthday || ''}" onblur="saveNotes('${person.id}', 'birthday')" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+        </div>
+        
+        <div class="section">
           <div class="section-title">Gift Ideas</div>
           <textarea id="giftIdeas" onblur="saveNotes('${person.id}', 'gift_ideas')">${person.gift_ideas}</textarea>
+          ${person.birthday ? `<div class="zodiac-icons" style="margin-top: 12px; text-align: center; color: ${getAvatarColor(person.name)}; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div style="font-size: 48px; display: flex; gap: 24px;">
+              <span title="${getZodiacName(person.birthday)}">${getZodiacSign(person.birthday)}</span> 
+              <span title="${getChineseZodiacName(person.birthday)}">${getChineseZodiacSign(person.birthday)}</span>
+            </div>
+            <div style="font-size: 16px; font-weight: 600;">${getGeneration(person.birthday)}</div>
+          </div>` : ''}
         </div>
 
         <div class="log-section">
@@ -1937,6 +2198,13 @@
         value = document.getElementById('relations').value;
       } else if (field === 'gift_ideas') {
         value = document.getElementById('giftIdeas').value;
+      } else if (field === 'birthday') {
+        value = document.getElementById('birthday').value;
+        person.birthday = value;
+        await saveData();
+        // Re-render to show zodiac sign
+        renderPersonCard(person, false);
+        return;
       }
 
       person[field] = value;
@@ -2060,6 +2328,9 @@
       }
       if (document.getElementById('relations')) {
         person.relations = document.getElementById('relations').value;
+      }
+      if (document.getElementById('birthday')) {
+        person.birthday = document.getElementById('birthday').value;
       }
 
       await saveData();
@@ -2412,6 +2683,197 @@
       // Open the name list modal in edit mode
       showNameListModal();
       enterEditMode();
+    }
+
+    // Notification System
+    let notificationPermission = false;
+    let reminderTimeoutId = null;
+    let snoozeTimeoutId = null;
+
+    async function showSettingsModal() {
+      document.getElementById('settingsModal').classList.add('active');
+      await loadNotificationSettings();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    async function loadNotificationSettings() {
+      // Load saved settings
+      const enabled = localStorage.getItem('notifications-enabled') === 'true';
+      const time = localStorage.getItem('reminder-time') || '09:00';
+      
+      document.getElementById('notificationsEnabled').checked = enabled;
+      document.getElementById('reminderTime').value = time;
+      
+      if (enabled) {
+        document.getElementById('notificationSettings').style.display = 'block';
+        await checkNotificationPermission();
+      }
+    }
+
+    async function toggleNotifications() {
+      const enabled = document.getElementById('notificationsEnabled').checked;
+      localStorage.setItem('notifications-enabled', enabled);
+      
+      if (enabled) {
+        document.getElementById('notificationSettings').style.display = 'block';
+        await requestNotificationPermission();
+      } else {
+        document.getElementById('notificationSettings').style.display = 'none';
+        clearNotificationSchedule();
+      }
+    }
+
+    async function requestNotificationPermission() {
+      if (!('Notification' in window)) {
+        updateNotificationStatus('❌ Notifications not supported in this browser');
+        return false;
+      }
+
+      if (Notification.permission === 'granted') {
+        notificationPermission = true;
+        updateNotificationStatus('✅ Notifications enabled');
+        scheduleNotifications();
+        return true;
+      }
+
+      if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          notificationPermission = true;
+          updateNotificationStatus('✅ Notifications enabled');
+          scheduleNotifications();
+          return true;
+        }
+      }
+
+      updateNotificationStatus('❌ Please allow notifications in your browser settings');
+      return false;
+    }
+
+    async function checkNotificationPermission() {
+      if (!('Notification' in window)) {
+        updateNotificationStatus('❌ Notifications not supported in this browser');
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        notificationPermission = true;
+        updateNotificationStatus('✅ Notifications enabled');
+        scheduleNotifications();
+      } else if (Notification.permission === 'denied') {
+        updateNotificationStatus('❌ Notifications blocked. Please check browser settings');
+      } else {
+        updateNotificationStatus('⚠️ Click to enable notifications');
+      }
+    }
+
+    function updateNotificationStatus(message) {
+      const status = document.getElementById('notificationStatus');
+      if (status) {
+        status.textContent = message;
+      }
+    }
+
+    function saveReminderTime() {
+      const time = document.getElementById('reminderTime').value;
+      localStorage.setItem('reminder-time', time);
+      scheduleNotifications();
+    }
+
+    function scheduleNotifications() {
+      clearNotificationSchedule();
+      
+      const enabled = localStorage.getItem('notifications-enabled') === 'true';
+      if (!enabled || !notificationPermission) return;
+
+      const reminderTime = localStorage.getItem('reminder-time') || '09:00';
+      const [hours, minutes] = reminderTime.split(':').map(Number);
+      
+      const now = new Date();
+      const scheduledTime = new Date();
+      scheduledTime.setHours(hours, minutes, 0, 0);
+      
+      // If time has passed today, schedule for tomorrow
+      if (scheduledTime <= now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+      
+      const timeUntilNotification = scheduledTime - now;
+      
+      reminderTimeoutId = setTimeout(() => {
+        sendNotification();
+        // Schedule next day
+        scheduleNotifications();
+      }, timeUntilNotification);
+      
+      console.log(`Next reminder scheduled for ${scheduledTime.toLocaleString()}`);
+    }
+
+    function clearNotificationSchedule() {
+      if (reminderTimeoutId) {
+        clearTimeout(reminderTimeoutId);
+        reminderTimeoutId = null;
+      }
+      if (snoozeTimeoutId) {
+        clearTimeout(snoozeTimeoutId);
+        snoozeTimeoutId = null;
+      }
+    }
+
+    async function sendNotification() {
+      // Check if already reminded today
+      const lastReminder = localStorage.getItem('last-reminder-date');
+      const today = new Date().toDateString();
+      const noThanksDate = localStorage.getItem('no-thanks-date');
+      
+      if (noThanksDate === today) {
+        console.log('User selected "No Thanks" for today');
+        return;
+      }
+      
+      if (!notificationPermission) return;
+
+      const notification = new Notification('🎯 Circle Of Friends', {
+        body: 'Reconnect with someone from your circle.',
+        icon: '📇',
+        tag: 'daily-reminder',
+        requireInteraction: true,
+        actions: [
+          { action: 'see-who', title: 'See Who' },
+          { action: 'remind-later', title: 'Remind Me Later' },
+          { action: 'no-thanks', title: 'No Thanks' }
+        ]
+      });
+
+      notification.onclick = function(event) {
+        event.preventDefault();
+        window.focus();
+        notification.close();
+        
+        const action = event.action;
+        
+        if (action === 'see-who' || !action) {
+          // Open the app (default behavior when clicking notification)
+          localStorage.setItem('last-reminder-date', today);
+        } else if (action === 'remind-later') {
+          // Snooze for 3 hours
+          snoozeTimeoutId = setTimeout(() => {
+            sendNotification();
+          }, 3 * 60 * 60 * 1000); // 3 hours
+        } else if (action === 'no-thanks') {
+          // No more reminders today
+          localStorage.setItem('no-thanks-date', today);
+        }
+      };
+
+      // Fallback for browsers that don't support action buttons
+      notification.addEventListener('click', () => {
+        window.focus();
+        notification.close();
+      });
     }
 
     // Circle Tooltip
