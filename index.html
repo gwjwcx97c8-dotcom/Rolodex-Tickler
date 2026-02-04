@@ -1134,6 +1134,11 @@
       color: white;
     }
 
+    .contact-action-btn.im {
+      background: #9b59b6;
+      color: white;
+    }
+
     .contact-action-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -1224,6 +1229,13 @@
       <div class="form-group">
         <label>Phone (optional)</label>
         <input type="tel" id="personPhone" placeholder="555-123-4567">
+      </div>
+      <div class="form-group">
+        <label>IM Link (optional)</label>
+        <input type="text" id="personIMLink" placeholder="https://m.me/username or https://wa.me/1234567890">
+        <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
+          Paste link to Messenger, WhatsApp, Instagram, Telegram, Discord, etc.
+        </small>
       </div>
       <div class="form-group">
         <label>List</label>
@@ -1845,6 +1857,7 @@
       document.getElementById('personName').value = person.name;
       document.getElementById('personEmail').value = person.email || '';
       document.getElementById('personPhone').value = person.phone || '';
+      document.getElementById('personIMLink').value = person.im_link || '';
       document.getElementById('personList').value = person.list_type;
       document.getElementById('deletePersonBtn').style.display = 'block';
       document.getElementById('personModal').classList.add('active');
@@ -1855,12 +1868,14 @@
       editingPersonId = null;
       document.getElementById('personEmail').value = '';
       document.getElementById('personPhone').value = '';
+      document.getElementById('personIMLink').value = '';
     }
 
     async function savePerson() {
       const name = document.getElementById('personName').value.trim();
       const email = document.getElementById('personEmail').value.trim();
       const phone = document.getElementById('personPhone').value.trim();
+      const imLink = document.getElementById('personIMLink').value.trim();
       const listType = document.getElementById('personList').value;
 
       if (!name) {
@@ -1874,6 +1889,7 @@
           person.name = name;
           person.email = email;
           person.phone = phone;
+          person.im_link = imLink;
           person.list_type = listType;
         }
       } else {
@@ -1882,6 +1898,7 @@
           name: name,
           email: email,
           phone: phone,
+          im_link: imLink,
           list_type: listType,
           notes_last_conversation: '',
           notes_next_conversation: '',
@@ -2115,6 +2132,7 @@
             ${person.email ? `<a href="mailto:${person.email}" class="contact-action-btn email">📧 Email</a>` : ''}
             ${person.phone ? `<a href="tel:${person.phone}" class="contact-action-btn phone">📞 Call</a>` : ''}
             ${person.phone ? `<a href="sms:${person.phone}" class="contact-action-btn sms">💬 Text</a>` : ''}
+            ${person.im_link ? `<a href="${person.im_link}" target="_blank" class="contact-action-btn im">💬 IM</a>` : ''}
           </div>
         </div>
         
