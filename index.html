@@ -33,8 +33,8 @@
       transform: translate(-50%, -50%);
       width: 500px;
       height: 110px;
-      background: #BE98D6;
-      border: 5px solid #BE98D6;
+      background: radial-gradient(ellipse at center, #F5E6A8 0%, #E8A05D 100%);
+      border: 5px solid #E8A05D;
       border-radius: 50%;
       z-index: 0;
       pointer-events: none;
@@ -97,7 +97,7 @@
     }
 
     .header h1 {
-      font-family: 'Brush Script MT', cursive;
+      font-family: 'Papyrus', 'Garamond', 'Georgia', serif;
       color: #3D1F47;
       font-size: 40px;
       font-weight: 700;
@@ -173,6 +173,31 @@
       letter-spacing: 1px;
       font-weight: 600;
       margin: 8px 0;
+    }
+
+    .import-export-links {
+      position: relative;
+      width: 500px;
+      margin: 8px auto 0;
+      display: flex;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .import-link,
+    .export-link {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 13px;
+      color: #A095B3;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .import-link:hover,
+    .export-link:hover {
+      color: #7A6B8D;
+      text-decoration: underline;
     }
 
     .header .subtitle {
@@ -635,6 +660,28 @@
     .modal-header-actions {
       display: flex;
       gap: 8px;
+      align-items: center;
+    }
+
+    .modal-close-btn {
+      background: #e0e0e0;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin-left: 8px;
+    }
+
+    .modal-close-btn:hover {
+      background: #ccc;
+      color: #333;
     }
 
     .modal-description {
@@ -964,6 +1011,13 @@
       margin: 0 auto;
     }
 
+    .circle-container-inline {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 20px auto;
+    }
+
     .circle-dot {
       position: absolute;
       width: 20px;
@@ -1150,14 +1204,16 @@
     <div class="header-oval"></div>
     <div id="storageIndicator" class="storage-indicator"></div>
     <div class="header-actions">
-      <button class="header-btn export-import" onclick="exportData()">Export</button>
       <button class="header-btn show-list" onclick="showNameListModal()">Show Name List</button>
-      <button class="header-btn export-import" onclick="document.getElementById('importFile').click()">Import</button>
       <button class="header-btn show-list" onclick="showSettingsModal()">⚙️ Settings</button>
-      <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
     </div>
-    <h1 style="cursor: pointer;" onclick="showCompletionCircle()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle Of Friends</h1>
+    <h1 style="cursor: pointer;" onclick="showCompletionScreen()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle Of Friends</h1>
     <div class="tagline">S    t    a    y                        C    l    o    s    e</div>
+    <div class="import-export-links">
+      <a href="#" class="import-link" onclick="event.preventDefault(); document.getElementById('importFile').click();">import</a>
+      <a href="#" class="export-link" onclick="event.preventDefault(); exportData();">export</a>
+    </div>
+    <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importData(event)">
   </div>
 
   <div class="search-bar">
@@ -1256,12 +1312,12 @@
   <!-- Name List Modal -->
   <div id="nameListModal" class="modal">
     <div class="modal-content">
-      <button class="completion-circle-close" onclick="closeNameListModal()">×</button>
       <div class="modal-header">
         <div class="modal-title" id="nameListTitle">Personal List</div>
         <div class="modal-header-actions">
           <button class="btn-primary" id="editNamesBtn" onclick="enterEditMode()">Edit Names</button>
           <button class="btn-primary" id="addPersonBtn2" style="display: none;" onclick="addPersonFromList()">Add Person</button>
+          <button class="modal-close-btn" onclick="closeNameListModal()">×</button>
         </div>
       </div>
       <div class="name-list" id="nameListContainer">
@@ -2362,16 +2418,106 @@
 
     function showCompletionScreen() {
       const card = document.getElementById('personCard');
+      const listPeople = people.filter(p => p.list_type === currentList);
+      
+      if (listPeople.length === 0) {
+        card.innerHTML = `
+          <div class="completion-screen">
+            <div class="completion-icon">📇</div>
+            <div class="completion-title">All Done!</div>
+            <div class="completion-message">Your notes have been saved.</div>
+            <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
+            <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
+            <button class="btn-secondary" onclick="showNameListModal()">Show Name List</button>
+          </div>
+        `;
+        return;
+      }
+
+      // Calculate contacted people
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      
+      const recentlyContacted = listPeople.filter(person => {
+        if (!person.last_contacted_date) return false;
+        const lastContactedDate = new Date(person.last_contacted_date);
+        return lastContactedDate >= twoWeeksAgo;
+      });
+
+      const percentage = listPeople.length > 0 ? Math.round((recentlyContacted.length / listPeople.length) * 100) : 0;
+
+      // Check if all are contacted and trigger confetti
+      if (recentlyContacted.length === listPeople.length && listPeople.length > 0) {
+        setTimeout(() => triggerConfetti(), 500);
+      }
+
       card.innerHTML = `
         <div class="completion-screen">
-          <div class="completion-icon">📇</div>
           <div class="completion-title">All Done!</div>
+          <div class="completion-circle-counter"><span class="contacted">${recentlyContacted.length}</span> of ${listPeople.length} contacted in the last 2 weeks</div>
+          <div class="circle-container-inline" id="circleContainerInline">
+            <!-- Circle will be added here -->
+          </div>
           <div class="completion-message">Your notes have been saved.</div>
           <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
           <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
           <button class="btn-secondary" onclick="showNameListModal()">Show Name List</button>
         </div>
       `;
+
+      // Now render the circle
+      const container = document.getElementById('circleContainerInline');
+      
+      // Add progress ring in the center
+      const progressRing = document.createElement('div');
+      progressRing.className = 'progress-ring-container';
+      progressRing.innerHTML = `
+        <svg class="progress-ring-svg" width="80" height="80">
+          <circle class="progress-ring-circle-bg" cx="40" cy="40" r="32"></circle>
+          <circle class="progress-ring-circle" cx="40" cy="40" r="32" id="progressCircleInline"></circle>
+        </svg>
+        <div class="progress-ring-text" id="progressTextInline">${percentage}%</div>
+      `;
+      container.appendChild(progressRing);
+      
+      // Update the progress ring
+      const progressCircle = document.getElementById('progressCircleInline');
+      const circumference = 2 * Math.PI * 32;
+      const offset = circumference - (percentage / 100) * circumference;
+      
+      progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+      progressCircle.style.strokeDashoffset = offset;
+      
+      const centerX = 150;
+      const centerY = 150;
+      const radius = 120;
+      const angleStep = (2 * Math.PI) / listPeople.length;
+
+      listPeople.forEach((person, index) => {
+        const angle = index * angleStep - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle) - 10;
+        const y = centerY + radius * Math.sin(angle) - 10;
+        
+        const wasContacted = recentlyContacted.some(p => p.id === person.id);
+        
+        const dot = document.createElement('div');
+        dot.className = `circle-dot ${wasContacted ? 'contacted' : 'not-contacted'}`;
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
+        dot.onclick = () => navigateToPerson(person);
+        
+        const tooltip = document.createElement('div');
+        tooltip.className = 'circle-dot-tooltip';
+        tooltip.textContent = person.name;
+        dot.appendChild(tooltip);
+        
+        container.appendChild(dot);
+        
+        // Animate dots appearing
+        setTimeout(() => {
+          dot.classList.add('animated');
+        }, index * 50);
+      });
     }
 
     function returnToTodaysConnection() {
@@ -2471,13 +2617,8 @@
 
     // Completion Circle Modal
     function checkAndShowCompletionCircle() {
-      const lastShown = localStorage.getItem('completionCircleLastShown');
-      const today = new Date().toDateString();
-      
-      // Only show if not shown today
-      if (lastShown !== today) {
-        setTimeout(() => showCompletionCircle(), 500); // Small delay for better UX
-      }
+      // No longer auto-showing circle modal - it's now part of the completion screen
+      // Users can click "Circle Of Friends" title to see it anytime
     }
 
     function showCompletionCircle() {
