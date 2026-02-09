@@ -20,7 +20,7 @@
 
     .header {
       background: #DECEE9;
-      padding: 20px;
+      padding: 24px 20px 28px 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
       position: relative;
@@ -28,12 +28,12 @@
 
     .header-oval {
       position: absolute;
-      top: 65%;
+      top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 500px;
       height: 110px;
-      background: radial-gradient(ellipse at center, #F5E6A8 0%, #E8A05D 100%);
+      background: radial-gradient(ellipse at center, #FFFFFF 0%, #F5E6A8 40%, #E8A05D 100%);
       border: 5px solid #E8A05D;
       border-radius: 50%;
       z-index: 0;
@@ -102,6 +102,7 @@
       font-size: 40px;
       font-weight: 700;
       position: relative;
+      text-shadow: 5px 5px 8px #C9A961;
     }
 
     .circle-tooltip {
@@ -126,7 +127,7 @@
     .storage-indicator {
       font-size: 11px;
       color: #666;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       opacity: 0.8;
     }
@@ -167,7 +168,7 @@
 
     .header .tagline {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      color: white;
+      color: #E8A05D;
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -226,6 +227,31 @@
     .search-bar input:focus {
       outline: none;
       border-color: #3498db;
+    }
+
+    .people-list-bar {
+      padding: 0 20px;
+      margin: 0 20px 16px 20px;
+    }
+
+    .people-list-btn {
+      width: 100%;
+      padding: 12px;
+      background: #DECEE9;
+      color: #3D1F47;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .people-list-btn:hover {
+      background: #D1C0DC;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
     }
 
     .main-content {
@@ -513,6 +539,24 @@
       background: #B898CC;
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(201, 171, 222, 0.3);
+    }
+
+    .btn-primary-dark {
+      background: #B898CC;
+      color: #333;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary-dark:hover {
+      background: #A785BA;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(184, 152, 204, 0.3);
     }
 
     .btn-secondary {
@@ -1035,13 +1079,13 @@
     }
 
     .circle-dot.contacted {
-      background: #C8ADD9;
-      border: 2px solid #C8ADD9;
+      background: radial-gradient(circle at center, #F5E6A8 0%, #E8A05D 100%);
+      border: 2px solid #E8A05D;
     }
 
     .circle-dot.not-contacted {
       background: white;
-      border: 2px solid #bdc3c7;
+      border: 2px solid #E8A05D;
     }
 
     .circle-dot:hover {
@@ -1203,12 +1247,8 @@
   <div class="header">
     <div class="header-oval"></div>
     <div id="storageIndicator" class="storage-indicator"></div>
-    <div class="header-actions">
-      <button class="header-btn show-list" onclick="showNameListModal()">Show Name List</button>
-      <button class="header-btn show-list" onclick="showSettingsModal()">⚙️ Settings</button>
-    </div>
-    <h1 style="cursor: pointer;" onclick="showCompletionScreen()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Circle Of Friends</h1>
-    <div class="tagline">S    t    a    y                        C    l    o    s    e</div>
+    <h1 style="cursor: pointer;" onclick="showCompletionScreen()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Inner Circle</h1>
+    <div class="tagline" id="tagline"></div>
     <div class="import-export-links">
       <a href="#" class="import-link" onclick="event.preventDefault(); document.getElementById('importFile').click();">import</a>
       <a href="#" class="export-link" onclick="event.preventDefault(); exportData();">export</a>
@@ -1218,6 +1258,10 @@
 
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search people or notes...">
+  </div>
+
+  <div class="people-list-bar">
+    <button class="people-list-btn" onclick="showNameListModal()">People List</button>
   </div>
 
   <div id="searchResults" class="search-results" style="display: none; margin: 0 20px;"></div>
@@ -1701,6 +1745,7 @@
     async function init() {
       await loadData();
       updateStorageIndicator();
+      setDailyTagline();
       
       if (people.length === 0) {
         showSetupModal();
@@ -1719,6 +1764,22 @@
       }
     }
 
+    function setDailyTagline() {
+      const taglines = [
+        'S    t    a    y                        C    l    o    s    e',
+        'Y    o    u    r                        P    e    o    p    l    e',
+        'W    e         a    r    e         a    l    l         j    u    s    t         w    a    l    k    i    n    g         e    a    c    h         o    t    h    e    r         h    o    m    e',
+        'W    h    o         d    o         y    o    u         l    o    v    e    ?'
+      ];
+      
+      // Use the current date to deterministically select a tagline
+      const today = new Date();
+      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      const index = dayOfYear % taglines.length;
+      
+      document.getElementById('tagline').textContent = taglines[index];
+    }
+
     function updateStorageIndicator() {
       const indicator = document.getElementById('storageIndicator');
       if (window.storage) {
@@ -1726,7 +1787,7 @@
         indicator.style.color = '#C9B5D9';
       } else {
         indicator.textContent = '💾 Local Storage Mode';
-        indicator.style.color = '#666';
+        indicator.style.color = '#C8BBD6';
       }
     }
 
@@ -2141,7 +2202,7 @@
         
         <div class="actions">
           <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
-          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
           <button class="btn-secondary" onclick="editCurrentPerson('${person.id}')">Edit Contact Info</button>
         </div>
         
@@ -2238,7 +2299,8 @@
         
         <div class="actions">
           <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
-          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
         </div>
       `;
     }
@@ -2427,8 +2489,9 @@
             <div class="completion-title">All Done!</div>
             <div class="completion-message">Your notes have been saved.</div>
             <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
-            <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
-            <button class="btn-secondary" onclick="showNameListModal()">Show Name List</button>
+            <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
+            <button class="btn-secondary" onclick="showNameListModal()">People List</button>
+            <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
           </div>
         `;
         return;
@@ -2454,14 +2517,15 @@
       card.innerHTML = `
         <div class="completion-screen">
           <div class="completion-title">All Done!</div>
-          <div class="completion-circle-counter"><span class="contacted">${recentlyContacted.length}</span> of ${listPeople.length} contacted in the last 2 weeks</div>
+          <div class="completion-message">Your notes have been saved.</div>
           <div class="circle-container-inline" id="circleContainerInline">
             <!-- Circle will be added here -->
           </div>
-          <div class="completion-message">Your notes have been saved.</div>
+          <div class="completion-circle-counter"><span class="contacted">${recentlyContacted.length}</span> of ${listPeople.length} of your people have been contacted within the last 2 weeks</div>
           <button class="btn-primary" onclick="returnToTodaysConnection()">Today's Connection</button>
-          <button class="btn-primary" onclick="skipPerson()">Next UnContacted Person</button>
-          <button class="btn-secondary" onclick="showNameListModal()">Show Name List</button>
+          <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-secondary" onclick="showNameListModal()">People List</button>
+          <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
         </div>
       `;
 
@@ -2618,7 +2682,7 @@
     // Completion Circle Modal
     function checkAndShowCompletionCircle() {
       // No longer auto-showing circle modal - it's now part of the completion screen
-      // Users can click "Circle Of Friends" title to see it anytime
+      // Users can click "Inner Circle" title to see it anytime
     }
 
     function showCompletionCircle() {
@@ -2640,7 +2704,7 @@
 
       // Update counter
       const counter = document.getElementById('circleCounter');
-      counter.innerHTML = `<span class="contacted">${recentlyContacted.length}</span> of ${listPeople.length} contacted in the last 2 weeks`;
+      counter.innerHTML = `<span class="contacted">${recentlyContacted.length}</span> of ${listPeople.length} of your people have been contacted within the last 2 weeks`;
 
       // Calculate percentage
       const percentage = listPeople.length > 0 ? Math.round((recentlyContacted.length / listPeople.length) * 100) : 0;
@@ -2995,7 +3059,7 @@
       
       if (!notificationPermission) return;
 
-      const notification = new Notification('🎯 Circle Of Friends', {
+      const notification = new Notification('🎯 Inner Circle', {
         body: 'Reconnect with someone from your circle.',
         icon: '📇',
         tag: 'daily-reminder',
