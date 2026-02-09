@@ -180,13 +180,24 @@
       position: relative;
       width: 500px;
       margin: 8px auto 0;
-      display: flex;
-      justify-content: space-between;
+      height: 20px;
       z-index: 2;
     }
 
-    .import-link,
+    .import-link {
+      position: absolute;
+      left: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 13px;
+      color: #A095B3;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
     .export-link {
+      position: absolute;
+      right: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       font-size: 13px;
       color: #A095B3;
@@ -514,6 +525,7 @@
 
     .actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       margin-top: 24px;
       margin-bottom: 32px;
@@ -1783,10 +1795,10 @@
     function updateStorageIndicator() {
       const indicator = document.getElementById('storageIndicator');
       if (window.storage) {
-        indicator.textContent = '☁️ Cloud Sync Enabled';
+        indicator.innerHTML = '<span style="filter: grayscale(100%) brightness(0) saturate(100%) opacity(0.8);">☁️</span> Cloud Sync Enabled';
         indicator.style.color = '#C9B5D9';
       } else {
-        indicator.textContent = '💾 Local Storage Mode';
+        indicator.innerHTML = '<span style="color: #C8BBD6;">💾</span> Local Storage Mode';
         indicator.style.color = '#C8BBD6';
       }
     }
@@ -2275,7 +2287,7 @@
         
         <div class="section">
           <div class="section-title">Birthday</div>
-          <input type="date" id="birthday" value="${person.birthday || ''}" onblur="saveNotes('${person.id}', 'birthday')" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+          <input type="date" id="birthday" value="${person.birthday || ''}" onblur="saveNotes('${person.id}', 'birthday')" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
         </div>
         
         <div class="section">
@@ -2298,8 +2310,8 @@
         </div>
         
         <div class="actions">
-          <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
           <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
+          <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
           <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
         </div>
       `;
