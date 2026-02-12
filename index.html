@@ -286,7 +286,7 @@
     }
 
     .person-card.flipping {
-      animation: cardFlipBlur 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      animation: cardFlipBlur 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     @keyframes cardFlipBlur {
@@ -451,15 +451,85 @@
 
     .contact-info {
       display: flex;
-      gap: 24px;
+      flex-direction: column;
+      gap: 16px;
       margin-bottom: 24px;
       padding: 16px;
       background: #f8f9fa;
       border-radius: 8px;
     }
 
+    .preferred-method-section {
+      margin: 16px 0 8px 0;
+      padding: 0 20px;
+    }
+
+    .contact-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
     .contact-info-item {
       flex: 1;
+    }
+
+    .contact-info-item-inline {
+      flex: 1;
+    }
+
+    .contact-info-item-full {
+      width: 100%;
+    }
+
+    .contact-status-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .contact-status-icon {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .btn-contacted-recent {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #27ae60;
+      color: white;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-contacted-recent:hover {
+      background: #229954;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+    }
+
+    .btn-contacted-overdue {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e67e22;
+      color: white;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-contacted-overdue:hover {
+      background: #d35400;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(230, 126, 34, 0.3);
     }
 
     .contact-info-label {
@@ -485,6 +555,23 @@
       font-size: 14px;
       background: white;
       cursor: pointer;
+    }
+
+    .contact-method-select-full {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .contact-method-select:focus,
+    .contact-method-select-full:focus {
+      outline: none;
+      border-color: #3498db;
     }
 
     .contact-method-select:focus {
@@ -867,6 +954,11 @@
     .completion-screen {
       text-align: center;
       padding: 60px 20px;
+    }
+    
+    .completion-screen .actions {
+      gap: 16px;
+      row-gap: 16px;
     }
 
     .completion-icon {
@@ -1258,7 +1350,6 @@
 <body>
   <div class="header">
     <div class="header-oval"></div>
-    <div id="storageIndicator" class="storage-indicator"></div>
     <h1 style="cursor: pointer;" onclick="showCompletionScreen()" onmouseenter="showCircleTooltip(event)" onmousemove="moveCircleTooltip(event)" onmouseleave="hideCircleTooltip()">Inner Circle</h1>
     <div class="tagline" id="tagline"></div>
     <div class="import-export-links">
@@ -1348,6 +1439,34 @@
         <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
           Paste link to Messenger, WhatsApp, Instagram, Telegram, Discord, etc.
         </small>
+      </div>
+      <div class="form-group">
+        <label>Enneagram (optional)</label>
+        <select id="personEnneagram">
+          <option value="">Select...</option>
+          <option value="1">1: Perfectionist / Reformer</option>
+          <option value="2">2: Giver / Helper</option>
+          <option value="3">3: Performer / Achiever</option>
+          <option value="4">4: Tragic-Romantic / Individualist</option>
+          <option value="5">5: Observer / Investigator</option>
+          <option value="6">6: Loyalist / Skeptic</option>
+          <option value="7">7: Epicure / Enthusiast</option>
+          <option value="8">8: Boss / Challenger</option>
+          <option value="9">9: Peacemaker / Mediator</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Intro / Extro (optional)</label>
+        <select id="personIntroExtro">
+          <option value="">Select...</option>
+          <option value="super_extrovert">Super Extrovert</option>
+          <option value="regular_extrovert">Regular Extrovert</option>
+          <option value="lowkey_extrovert">Low-Key Extrovert</option>
+          <option value="goldilocks">Goldilocks</option>
+          <option value="lowkey_introvert">Low-Key Introvert</option>
+          <option value="regular_introvert">Regular Introvert</option>
+          <option value="super_introvert">Super Introvert</option>
+        </select>
       </div>
       <div class="form-group">
         <label>List</label>
@@ -1563,6 +1682,117 @@
       return '';
     }
 
+    function getIntroExtroIndicator(introExtro) {
+      if (!introExtro) return '';
+      
+      // Extroverts: 1, 2, 3
+      if (introExtro === 'super_extrovert' || introExtro === 'regular_extrovert' || introExtro === 'lowkey_extrovert') {
+        return 'E';
+      }
+      
+      // Introverts: 5, 6, 7
+      if (introExtro === 'lowkey_introvert' || introExtro === 'regular_introvert' || introExtro === 'super_introvert') {
+        return 'I';
+      }
+      
+      // Goldilocks (4): return nothing
+      return '';
+    }
+
+    function getDayOfWeek(birthday) {
+      if (!birthday) return '';
+      const date = new Date(birthday);
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return days[date.getDay()];
+    }
+
+    function getEnneagramName(enneagram) {
+      const names = {
+        '1': 'Perfectionist',
+        '2': 'Giver',
+        '3': 'Performer',
+        '4': 'Individualist',
+        '5': 'Observer',
+        '6': 'Loyalist',
+        '7': 'Enthusiast',
+        '8': 'Boss',
+        '9': 'Peacemaker'
+      };
+      return names[enneagram] || '';
+    }
+
+    function getIntroExtroDescription(introExtro) {
+      if (!introExtro) return '';
+      
+      if (introExtro === 'super_extrovert' || introExtro === 'regular_extrovert' || introExtro === 'lowkey_extrovert') {
+        return 'extroverted';
+      }
+      
+      if (introExtro === 'lowkey_introvert' || introExtro === 'regular_introvert' || introExtro === 'super_introvert') {
+        return 'introverted';
+      }
+      
+      if (introExtro === 'goldilocks') {
+        return 'balanced';
+      }
+      
+      return '';
+    }
+
+    function getProfileNarrative(person) {
+      if (!person.birthday && !person.intro_extro && !person.enneagram) {
+        return '';
+      }
+
+      let parts = [];
+      
+      // Day of week child
+      if (person.birthday) {
+        const dayOfWeek = getDayOfWeek(person.birthday);
+        parts.push(`A ${dayOfWeek}'s child`);
+      }
+      
+      // Generation
+      if (person.birthday) {
+        const generation = getGeneration(person.birthday);
+        if (generation) {
+          parts.push(generation);
+        }
+      }
+      
+      // Zodiac sign
+      if (person.birthday) {
+        const zodiacName = getZodiacName(person.birthday);
+        if (zodiacName) {
+          parts.push(zodiacName.toLowerCase());
+        }
+      }
+      
+      // Build the sentence
+      let narrative = parts.join(', ');
+      
+      // Add intro/extro + enneagram if present
+      if (person.intro_extro || person.enneagram) {
+        if (parts.length > 0) {
+          narrative += ', who is ';
+        } else {
+          narrative = 'A ';
+        }
+        
+        const descriptors = [];
+        if (person.intro_extro) {
+          descriptors.push(getIntroExtroDescription(person.intro_extro));
+        }
+        if (person.enneagram) {
+          descriptors.push(getEnneagramName(person.enneagram));
+        }
+        
+        narrative += descriptors.join(' ');
+      }
+      
+      return narrative + '.';
+    }
+
     // Name List Modal
 
     function showNameListModal() {
@@ -1756,7 +1986,6 @@
     // Initialize app
     async function init() {
       await loadData();
-      updateStorageIndicator();
       setDailyTagline();
       
       if (people.length === 0) {
@@ -1780,7 +2009,7 @@
       const taglines = [
         'S    t    a    y                        C    l    o    s    e',
         'Y    o    u    r                        P    e    o    p    l    e',
-        'W    e         a    r    e         a    l    l         j    u    s    t         w    a    l    k    i    n    g         e    a    c    h         o    t    h    e    r         h    o    m    e',
+        'W    e    \'    r    e         a    l    l         j    u    s    t         w    a    l    k    i    n    g         e    a    c    h         o    t    h    e    r         h    o    m    e',
         'W    h    o         d    o         y    o    u         l    o    v    e    ?'
       ];
       
@@ -1790,17 +2019,6 @@
       const index = dayOfYear % taglines.length;
       
       document.getElementById('tagline').textContent = taglines[index];
-    }
-
-    function updateStorageIndicator() {
-      const indicator = document.getElementById('storageIndicator');
-      if (window.storage) {
-        indicator.innerHTML = '<span style="filter: grayscale(100%) brightness(0) saturate(100%) opacity(0.8);">☁️</span> Cloud Sync Enabled';
-        indicator.style.color = '#C9B5D9';
-      } else {
-        indicator.innerHTML = '<span style="color: #C8BBD6;">💾</span> Local Storage Mode';
-        indicator.style.color = '#C8BBD6';
-      }
     }
 
     // Persistent Storage (using localStorage for GitHub Pages)
@@ -1987,6 +2205,8 @@
       document.getElementById('personEmail').value = person.email || '';
       document.getElementById('personPhone').value = person.phone || '';
       document.getElementById('personIMLink').value = person.im_link || '';
+      document.getElementById('personEnneagram').value = person.enneagram || '';
+      document.getElementById('personIntroExtro').value = person.intro_extro || '';
       document.getElementById('personList').value = person.list_type;
       document.getElementById('deletePersonBtn').style.display = 'block';
       document.getElementById('personModal').classList.add('active');
@@ -1998,6 +2218,8 @@
       document.getElementById('personEmail').value = '';
       document.getElementById('personPhone').value = '';
       document.getElementById('personIMLink').value = '';
+      document.getElementById('personEnneagram').value = '';
+      document.getElementById('personIntroExtro').value = '';
     }
 
     async function savePerson() {
@@ -2005,6 +2227,8 @@
       const email = document.getElementById('personEmail').value.trim();
       const phone = document.getElementById('personPhone').value.trim();
       const imLink = document.getElementById('personIMLink').value.trim();
+      const enneagram = document.getElementById('personEnneagram').value;
+      const introExtro = document.getElementById('personIntroExtro').value;
       const listType = document.getElementById('personList').value;
 
       if (!name) {
@@ -2019,6 +2243,8 @@
           person.email = email;
           person.phone = phone;
           person.im_link = imLink;
+          person.enneagram = enneagram;
+          person.intro_extro = introExtro;
           person.list_type = listType;
         }
       } else {
@@ -2028,6 +2254,8 @@
           email: email,
           phone: phone,
           im_link: imLink,
+          enneagram: enneagram,
+          intro_extro: introExtro,
           list_type: listType,
           notes_last_conversation: '',
           notes_next_conversation: '',
@@ -2093,6 +2321,11 @@
       const lastRotation = await getLastRotationDate(currentList);
       let index = await getRotationIndex(currentList);
 
+      // Ensure index is within bounds of current peopleToShow array
+      if (index >= peopleToShow.length) {
+        index = 0;
+      }
+
       if (lastRotation !== today) {
         // New day, rotate to next person
         index = (index + 1) % peopleToShow.length;
@@ -2101,6 +2334,18 @@
       }
 
       currentPerson = peopleToShow[index];
+      
+      // Safety check - make sure we got a valid person
+      if (!currentPerson) {
+        console.error('No valid person found at index', index, 'in peopleToShow', peopleToShow);
+        // Try the first person as a fallback
+        currentPerson = peopleToShow[0];
+        if (!currentPerson) {
+          showEmptyState();
+          return;
+        }
+      }
+      
       renderPersonCard(currentPerson, true);
     }
 
@@ -2121,18 +2366,36 @@
         !wasContactedRecently(p)
       );
       
-      // If everyone has been contacted, fall back to all active people
-      const peopleToShow = activePeople.length > 0 
-        ? activePeople 
-        : people.filter(p => p.list_type === currentList && p.status === 'active');
+      // If everyone has been contacted, show All Done screen
+      if (activePeople.length === 0) {
+        showCompletionScreen();
+        return;
+      }
+      
+      const peopleToShow = activePeople;
       
       if (peopleToShow.length === 0) return;
 
       let index = await getRotationIndex(currentList);
-      index = (index + 1) % peopleToShow.length;
+      
+      // Ensure index is within bounds before incrementing
+      if (index >= peopleToShow.length) {
+        index = 0;
+      } else {
+        index = (index + 1) % peopleToShow.length;
+      }
+      
       await setRotationIndex(currentList, index);
 
       currentPerson = peopleToShow[index];
+      
+      // Safety check
+      if (!currentPerson) {
+        console.error('No valid person in skipPerson at index', index);
+        currentPerson = peopleToShow[0];
+        if (!currentPerson) return;
+      }
+      
       savedPerson = currentPerson; // Update savedPerson so "Today's Connection" button works
       renderPersonCard(currentPerson, true);
     }
@@ -2141,12 +2404,18 @@
     function renderPersonCard(person, animate = false) {
       const card = document.getElementById('personCard');
       
+      // Safety check - if person is undefined, don't proceed
+      if (!person) {
+        console.error('renderPersonCard called with undefined person');
+        return;
+      }
+      
       if (animate) {
         card.classList.add('flipping');
         setTimeout(() => {
           updateCardContent(person);
           card.classList.remove('flipping');
-        }, 1100); // Update content at midpoint of 2.2s animation
+        }, 600); // Update content at midpoint of 1.2s animation
       } else {
         updateCardContent(person);
       }
@@ -2154,6 +2423,12 @@
 
     function updateCardContent(person) {
       const card = document.getElementById('personCard');
+      
+      // Safety check - if person is undefined, don't proceed
+      if (!person) {
+        console.error('updateCardContent called with undefined person');
+        return;
+      }
       
       // Auto-reset contacted checkbox if it's been more than 2 weeks
       if (person.last_contacted_date) {
@@ -2170,6 +2445,20 @@
       const lastContactedDisplay = person.last_contacted_date 
         ? new Date(person.last_contacted_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         : "It's been a minute.";
+      
+      // Calculate if person was contacted within 2 weeks
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      const isRecent = person.last_contacted_date && new Date(person.last_contacted_date) >= twoWeeksAgo;
+      
+      // Check if contacted TODAY specifically
+      const today = new Date().toDateString();
+      const contactedToday = person.last_contacted_date && new Date(person.last_contacted_date).toDateString() === today;
+      
+      const statusIcon = isRecent ? '🤝' : '🌾'; // Touching hands vs tumbleweed
+      const statusColor = isRecent ? '#27ae60' : '#e67e22';
+      const buttonClass = isRecent ? 'btn-contacted-recent' : 'btn-contacted-overdue';
+      const buttonText = contactedToday ? 'Contacted Today!' : 'Contacted Today?';
       
       // Ensure conversation_log exists (for backwards compatibility)
       if (!person.conversation_log) {
@@ -2205,12 +2494,7 @@
           <button class="name-toggle-arrow" onclick="toggleToNextPerson()" title="Next Person">▶</button>
         </div>
         <div class="person-name-text">${person.name}</div>
-        <div class="person-checkbox">
-          <input type="checkbox" ${person.last_contacted_date ? 'checked' : ''} 
-                 onchange="toggleContacted('${person.id}')" 
-                 style="width: 20px; height: 20px; cursor: pointer;"
-                 title="Contacted">
-        </div>
+        <div class="status-icon-display" style="font-size: 32px; text-align: center; margin: 8px 0;">${statusIcon}</div>
         
         <div class="actions">
           <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
@@ -2219,34 +2503,20 @@
         </div>
         
         <div class="contact-info">
-          <div class="contact-info-item">
-            <div class="contact-info-label">Date Last Contacted</div>
-            <div class="contact-info-value">${lastContactedDisplay}</div>
-          </div>
-          <div class="contact-info-item">
-            <div class="contact-info-label">Preferred Contact Method</div>
-            <select class="contact-method-select" onchange="updateContactMethod('${person.id}', this.value)">
-              <option value="" ${!person.preferred_contact_method ? 'selected' : ''}>Select method...</option>
-              <option value="Text" ${person.preferred_contact_method === 'Text' ? 'selected' : ''}>Text</option>
-              <option value="Email" ${person.preferred_contact_method === 'Email' ? 'selected' : ''}>Email</option>
-              <option value="Phone" ${person.preferred_contact_method === 'Phone' ? 'selected' : ''}>Phone</option>
-              <option value="In-Person Visit" ${person.preferred_contact_method === 'In-Person Visit' ? 'selected' : ''}>In-Person Visit</option>
-              <option value="SnailMail" ${person.preferred_contact_method === 'SnailMail' ? 'selected' : ''}>Snail Mail</option>
-              <option value="Social Media" ${person.preferred_contact_method === 'Social Media' ? 'selected' : ''}>Social Media Pings</option>
-              <option value="Smoke Signals" ${person.preferred_contact_method === 'Smoke Signals' ? 'selected' : ''}>Smoke Signals</option>
-              <option value="Other" ${person.preferred_contact_method === 'Other' ? 'selected' : ''}>Other</option>
-            </select>
+          <div class="contact-info-row">
+            <div class="contact-info-item-inline">
+              <div class="contact-info-label">Date Last Contacted</div>
+              <div class="contact-info-value">${lastContactedDisplay}</div>
+            </div>
+            <div class="contact-status-section">
+              <button class="${buttonClass}" onclick="markContactedToday('${person.id}')">${buttonText}</button>
+            </div>
           </div>
         </div>
         
         <div class="section">
           <div class="section-header">
             <div class="section-title">Last Conversation</div>
-            <label class="contacted-checkbox">
-              <input type="checkbox" ${person.last_contacted_date ? 'checked' : ''} 
-                     onchange="toggleContacted('${person.id}')">
-              <span>Contacted</span>
-            </label>
           </div>
           <div class="quick-notes-section">
             <div class="quick-notes-buttons">
@@ -2263,6 +2533,21 @@
             ${person.phone ? `<a href="sms:${person.phone}" class="contact-action-btn sms">💬 Text</a>` : ''}
             ${person.im_link ? `<a href="${person.im_link}" target="_blank" class="contact-action-btn im">💬 IM</a>` : ''}
           </div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Preferred Contact Method</div>
+          <select class="contact-method-select-full" onchange="updateContactMethod('${person.id}', this.value)" style="width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; background: white; cursor: pointer; box-sizing: border-box;">
+            <option value="" ${!person.preferred_contact_method ? 'selected' : ''}>Select method...</option>
+            <option value="Text" ${person.preferred_contact_method === 'Text' ? 'selected' : ''}>Text</option>
+            <option value="Email" ${person.preferred_contact_method === 'Email' ? 'selected' : ''}>Email</option>
+            <option value="Phone" ${person.preferred_contact_method === 'Phone' ? 'selected' : ''}>Phone</option>
+            <option value="In-Person Visit" ${person.preferred_contact_method === 'In-Person Visit' ? 'selected' : ''}>In-Person Visit</option>
+            <option value="SnailMail" ${person.preferred_contact_method === 'SnailMail' ? 'selected' : ''}>Snail Mail</option>
+            <option value="Social Media" ${person.preferred_contact_method === 'Social Media' ? 'selected' : ''}>Social Media Pings</option>
+            <option value="Smoke Signals" ${person.preferred_contact_method === 'Smoke Signals' ? 'selected' : ''}>Smoke Signals</option>
+            <option value="Other" ${person.preferred_contact_method === 'Other' ? 'selected' : ''}>Other</option>
+          </select>
         </div>
         
         <div class="section">
@@ -2293,13 +2578,22 @@
         <div class="section">
           <div class="section-title">Gift Ideas</div>
           <textarea id="giftIdeas" onblur="saveNotes('${person.id}', 'gift_ideas')">${person.gift_ideas}</textarea>
-          ${person.birthday ? `<div class="zodiac-icons" style="margin-top: 12px; text-align: center; color: ${getAvatarColor(person.name)}; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <div style="font-size: 48px; display: flex; gap: 24px;">
-              <span title="${getZodiacName(person.birthday)}">${getZodiacSign(person.birthday)}</span> 
-              <span title="${getChineseZodiacName(person.birthday)}">${getChineseZodiacSign(person.birthday)}</span>
+          ${person.birthday || person.intro_extro || person.enneagram ? `
+            <div class="zodiac-icons" style="margin-top: 12px; text-align: center; color: ${getAvatarColor(person.name)};">
+              ${person.birthday ? `
+                <div style="display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 48px;">
+                  <span title="${getZodiacName(person.birthday)}">${getZodiacSign(person.birthday)}</span>
+                  <span title="${getChineseZodiacName(person.birthday)}">${getChineseZodiacSign(person.birthday)}</span>
+                  <span style="font-size: 24px; font-weight: 600;">${getGeneration(person.birthday)}</span>
+                  ${person.intro_extro ? `<span style="font-size: 32px; font-weight: 700;">${getIntroExtroIndicator(person.intro_extro)}</span>` : ''}
+                  ${person.enneagram ? `<span style="font-size: 32px; font-weight: 700;">${person.enneagram}</span>` : ''}
+                </div>
+              ` : ''}
+              <div style="margin-top: 8px; font-size: 14px; font-style: italic; opacity: 0.85;">
+                ${getProfileNarrative(person)}
+              </div>
             </div>
-            <div style="font-size: 16px; font-weight: 600;">${getGeneration(person.birthday)}</div>
-          </div>` : ''}
+          ` : ''}
         </div>
 
         <div class="log-section">
@@ -2314,7 +2608,38 @@
           <button class="btn-primary" onclick="saveAndClose('${person.id}')">Save & Close</button>
           <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
         </div>
+        
+        <div class="bottom-storage-indicator" id="bottomStorageIndicator" style="text-align: center; margin-top: 16px; font-size: 11px; color: #666; opacity: 0.8;"></div>
       `;
+      
+      // Update bottom storage indicator
+      updateBottomStorageIndicator();
+    }
+
+    function updateBottomStorageIndicator() {
+      const indicator = document.getElementById('bottomStorageIndicator');
+      if (!indicator) return;
+      
+      if (window.storage) {
+        indicator.innerHTML = '<span style="filter: grayscale(100%) brightness(0) saturate(100%) opacity(0.8);">☁️</span> Cloud Sync Enabled';
+        indicator.style.color = '#C9B5D9';
+      } else {
+        indicator.innerHTML = '<span style="color: #C8BBD6;">💾</span> Local Storage Mode';
+        indicator.style.color = '#C8BBD6';
+      }
+    }
+
+    function updateCompletionStorageIndicator() {
+      const indicator = document.getElementById('completionStorageIndicator');
+      if (!indicator) return;
+      
+      if (window.storage) {
+        indicator.innerHTML = '<span style="filter: grayscale(100%) brightness(0) saturate(100%) opacity(0.8);">☁️</span> Cloud Sync Enabled';
+        indicator.style.color = '#C9B5D9';
+      } else {
+        indicator.innerHTML = '<span style="color: #C8BBD6;">💾</span> Local Storage Mode';
+        indicator.style.color = '#C8BBD6';
+      }
     }
 
     function showEmptyState() {
@@ -2371,6 +2696,18 @@
       
       await saveData();
       // Re-render to update the date display
+      renderPersonCard(person, false);
+    }
+
+    async function markContactedToday(personId) {
+      const person = people.find(p => p.id == personId);
+      if (!person) return;
+
+      // Always update to today's date
+      person.last_contacted_date = new Date().toISOString();
+      
+      await saveData();
+      // Re-render to update the date display, button color, and icon
       renderPersonCard(person, false);
     }
 
@@ -2504,8 +2841,10 @@
             <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
             <button class="btn-secondary" onclick="showNameListModal()">People List</button>
             <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
+            <div class="bottom-storage-indicator" id="completionStorageIndicator" style="text-align: center; margin-top: 16px; font-size: 11px; color: #666; opacity: 0.8;"></div>
           </div>
         `;
+        updateCompletionStorageIndicator();
         return;
       }
 
@@ -2538,8 +2877,12 @@
           <button class="btn-primary-dark" onclick="skipPerson()">Next UnContacted Person</button>
           <button class="btn-secondary" onclick="showNameListModal()">People List</button>
           <button class="btn-secondary" onclick="showSettingsModal()">⚙️ Settings</button>
+          <div class="bottom-storage-indicator" id="completionStorageIndicator" style="text-align: center; margin-top: 16px; font-size: 11px; color: #666; opacity: 0.8;"></div>
         </div>
       `;
+
+      // Update storage indicator
+      updateCompletionStorageIndicator();
 
       // Now render the circle
       const container = document.getElementById('circleContainerInline');
