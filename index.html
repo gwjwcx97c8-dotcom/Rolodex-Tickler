@@ -477,6 +477,7 @@
 
     .contact-info-item-inline {
       flex: 1;
+      text-align: right;
     }
 
     .contact-info-item-full {
@@ -495,41 +496,41 @@
     }
 
     .btn-contacted-recent {
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
-      border-radius: 6px;
+      border-radius: 50px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: #27ae60;
+      background: linear-gradient(90deg, #6BA583 0%, #88C5A0 50%, #6BA583 100%);
       color: white;
       transition: all 0.2s;
       white-space: nowrap;
     }
 
     .btn-contacted-recent:hover {
-      background: #229954;
+      background: linear-gradient(90deg, #5A9472 0%, #77B48F 50%, #5A9472 100%);
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+      box-shadow: 0 2px 4px rgba(107, 165, 131, 0.3);
     }
 
     .btn-contacted-overdue {
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
-      border-radius: 6px;
+      border-radius: 50px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      background: #e67e22;
+      background: linear-gradient(90deg, #D49574 0%, #E5AC8B 50%, #D49574 100%);
       color: white;
       transition: all 0.2s;
       white-space: nowrap;
     }
 
     .btn-contacted-overdue:hover {
-      background: #d35400;
+      background: linear-gradient(90deg, #C38463 0%, #D49B7A 50%, #C38463 100%);
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(230, 126, 34, 0.3);
+      box-shadow: 0 2px 4px rgba(212, 149, 116, 0.3);
     }
 
     .contact-info-label {
@@ -1508,6 +1509,19 @@
       <div class="modal-title">Settings</div>
       
       <div class="settings-section">
+        <h3>Timezone</h3>
+        <div class="form-group">
+          <label>Your Timezone</label>
+          <select id="timezoneSelect" onchange="saveTimezone()" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;">
+            <!-- Common timezones will be populated here -->
+          </select>
+          <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
+            Used to correctly calculate day of week for birthdays
+          </small>
+        </div>
+      </div>
+      
+      <div class="settings-section">
         <h3>Daily Reminders</h3>
         <label class="settings-toggle">
           <input type="checkbox" id="notificationsEnabled" onchange="toggleNotifications()">
@@ -1701,9 +1715,40 @@
 
     function getDayOfWeek(birthday) {
       if (!birthday) return '';
-      const date = new Date(birthday);
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      return days[date.getDay()];
+      
+      // Get user's timezone (default to system timezone if not set)
+      const timezone = localStorage.getItem('user-timezone') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Create date at noon in the user's timezone to avoid edge cases
+      const dateStr = birthday + 'T12:00:00';
+      const date = new Date(dateStr);
+      
+      // Format in user's timezone
+      const formatter = new Intl.DateTimeFormat('en-US', { 
+        weekday: 'long',
+        timeZone: timezone
+      });
+      
+      return formatter.format(date);
+    }
+
+    function getDayOfWeekAbbr(birthday) {
+      if (!birthday) return '';
+      
+      // Get user's timezone (default to system timezone if not set)
+      const timezone = localStorage.getItem('user-timezone') || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Create date at noon in the user's timezone to avoid edge cases
+      const dateStr = birthday + 'T12:00:00';
+      const date = new Date(dateStr);
+      
+      // Format in user's timezone - short format
+      const formatter = new Intl.DateTimeFormat('en-US', { 
+        weekday: 'short',
+        timeZone: timezone
+      });
+      
+      return formatter.format(date);
     }
 
     function getEnneagramName(enneagram) {
@@ -1746,12 +1791,6 @@
 
       let parts = [];
       
-      // Day of week child
-      if (person.birthday) {
-        const dayOfWeek = getDayOfWeek(person.birthday);
-        parts.push(`A ${dayOfWeek}'s child`);
-      }
-      
       // Generation
       if (person.birthday) {
         const generation = getGeneration(person.birthday);
@@ -1760,29 +1799,53 @@
         }
       }
       
-      // Zodiac sign
+      // Chinese zodiac (Year of the...)
       if (person.birthday) {
-        const zodiacName = getZodiacName(person.birthday);
-        if (zodiacName) {
-          parts.push(zodiacName.toLowerCase());
+        const chineseZodiacName = getChineseZodiacName(person.birthday);
+        if (chineseZodiacName) {
+          parts.push(`Year of the ${chineseZodiacName}`);
         }
       }
       
-      // Build the sentence
-      let narrative = parts.join(', ');
+      // Day of week child
+      if (person.birthday) {
+        const dayOfWeek = getDayOfWeek(person.birthday);
+        parts.push(`${dayOfWeek}'s Child`);
+      }
       
-      // Add intro/extro + enneagram if present
-      if (person.intro_extro || person.enneagram) {
-        if (parts.length > 0) {
+      // Start building the sentence
+      let narrative = '';
+      if (parts.length > 0) {
+        narrative = 'A ' + parts.join(', ');
+      }
+      
+      // Add intro/extro + zodiac + enneagram if present
+      if (person.intro_extro || person.enneagram || (person.birthday && getZodiacName(person.birthday))) {
+        if (narrative) {
           narrative += ', who is ';
         } else {
           narrative = 'A ';
         }
         
         const descriptors = [];
+        
+        // Intro/extro (with "an")
         if (person.intro_extro) {
-          descriptors.push(getIntroExtroDescription(person.intro_extro));
+          const introExtroDesc = getIntroExtroDescription(person.intro_extro);
+          if (introExtroDesc) {
+            descriptors.push(`an ${introExtroDesc}`);
+          }
         }
+        
+        // Western zodiac sign
+        if (person.birthday) {
+          const zodiacName = getZodiacName(person.birthday);
+          if (zodiacName) {
+            descriptors.push(zodiacName);
+          }
+        }
+        
+        // Enneagram
         if (person.enneagram) {
           descriptors.push(getEnneagramName(person.enneagram));
         }
@@ -1790,7 +1853,7 @@
         narrative += descriptors.join(' ');
       }
       
-      return narrative + '.';
+      return narrative ? narrative + '.' : '';
     }
 
     // Name List Modal
@@ -2457,7 +2520,7 @@
       
       const statusIcon = isRecent ? '🤝' : '🌾'; // Touching hands vs tumbleweed
       const statusColor = isRecent ? '#27ae60' : '#e67e22';
-      const buttonClass = isRecent ? 'btn-contacted-recent' : 'btn-contacted-overdue';
+      const buttonClass = contactedToday ? 'btn-contacted-recent' : 'btn-contacted-overdue';
       const buttonText = contactedToday ? 'Contacted Today!' : 'Contacted Today?';
       
       // Ensure conversation_log exists (for backwards compatibility)
@@ -2504,12 +2567,12 @@
         
         <div class="contact-info">
           <div class="contact-info-row">
+            <div class="contact-status-section">
+              <button class="${buttonClass}" onclick="markContactedToday('${person.id}')">${buttonText}</button>
+            </div>
             <div class="contact-info-item-inline">
               <div class="contact-info-label">Date Last Contacted</div>
               <div class="contact-info-value">${lastContactedDisplay}</div>
-            </div>
-            <div class="contact-status-section">
-              <button class="${buttonClass}" onclick="markContactedToday('${person.id}')">${buttonText}</button>
             </div>
           </div>
         </div>
@@ -2551,7 +2614,7 @@
         </div>
         
         <div class="section">
-          <div class="section-title">Next Conversation Ideas / Next Steps</div>
+          <div class="section-title">Things to Cover for Next Time</div>
           <textarea id="nextConvo" onblur="saveNotes('${person.id}', 'notes_next_conversation')">${person.notes_next_conversation}</textarea>
         </div>
         
@@ -2580,15 +2643,14 @@
           <textarea id="giftIdeas" onblur="saveNotes('${person.id}', 'gift_ideas')">${person.gift_ideas}</textarea>
           ${person.birthday || person.intro_extro || person.enneagram ? `
             <div class="zodiac-icons" style="margin-top: 12px; text-align: center; color: ${getAvatarColor(person.name)};">
-              ${person.birthday ? `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 48px;">
-                  <span title="${getZodiacName(person.birthday)}">${getZodiacSign(person.birthday)}</span>
-                  <span title="${getChineseZodiacName(person.birthday)}">${getChineseZodiacSign(person.birthday)}</span>
-                  <span style="font-size: 24px; font-weight: 600;">${getGeneration(person.birthday)}</span>
-                  ${person.intro_extro ? `<span style="font-size: 32px; font-weight: 700;">${getIntroExtroIndicator(person.intro_extro)}</span>` : ''}
-                  ${person.enneagram ? `<span style="font-size: 32px; font-weight: 700;">${person.enneagram}</span>` : ''}
-                </div>
-              ` : ''}
+              <div style="display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 48px; flex-wrap: wrap;">
+                ${person.birthday ? `<span style="font-size: 24px; font-weight: 600;" title="${getGeneration(person.birthday)}">${getGeneration(person.birthday)}</span>` : ''}
+                ${person.birthday ? `<span title="${getChineseZodiacName(person.birthday)}">${getChineseZodiacSign(person.birthday)}</span>` : ''}
+                ${person.birthday ? `<span style="font-size: 24px; font-weight: 600;" title="${getDayOfWeek(person.birthday)}'s Child">${getDayOfWeekAbbr(person.birthday)}</span>` : ''}
+                ${person.intro_extro ? `<span style="font-size: 32px; font-weight: 700;" title="${getIntroExtroDescription(person.intro_extro)}">${getIntroExtroIndicator(person.intro_extro)}</span>` : ''}
+                ${person.birthday ? `<span title="${getZodiacName(person.birthday)}">${getZodiacSign(person.birthday)}</span>` : ''}
+                ${person.enneagram ? `<span style="font-size: 32px; font-weight: 700;" title="${getEnneagramName(person.enneagram)}">${person.enneagram}</span>` : ''}
+              </div>
               <div style="margin-top: 8px; font-size: 14px; font-style: italic; opacity: 0.85;">
                 ${getProfileNarrative(person)}
               </div>
@@ -3269,12 +3331,65 @@
     let snoozeTimeoutId = null;
 
     async function showSettingsModal() {
+      populateTimezones();
+      loadTimezone();
       document.getElementById('settingsModal').classList.add('active');
       await loadNotificationSettings();
     }
 
     function closeSettingsModal() {
       document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    function populateTimezones() {
+      const select = document.getElementById('timezoneSelect');
+      if (select.options.length > 0) return; // Already populated
+      
+      const timezones = [
+        { value: 'America/New_York', label: 'Eastern Time (US & Canada)' },
+        { value: 'America/Chicago', label: 'Central Time (US & Canada)' },
+        { value: 'America/Denver', label: 'Mountain Time (US & Canada)' },
+        { value: 'America/Phoenix', label: 'Arizona' },
+        { value: 'America/Los_Angeles', label: 'Pacific Time (US & Canada)' },
+        { value: 'America/Anchorage', label: 'Alaska' },
+        { value: 'Pacific/Honolulu', label: 'Hawaii' },
+        { value: 'Europe/London', label: 'London' },
+        { value: 'Europe/Paris', label: 'Paris, Berlin, Rome' },
+        { value: 'Europe/Athens', label: 'Athens, Istanbul' },
+        { value: 'Asia/Dubai', label: 'Dubai' },
+        { value: 'Asia/Kolkata', label: 'Mumbai, Delhi' },
+        { value: 'Asia/Shanghai', label: 'Beijing, Shanghai' },
+        { value: 'Asia/Tokyo', label: 'Tokyo, Osaka' },
+        { value: 'Asia/Seoul', label: 'Seoul' },
+        { value: 'Australia/Sydney', label: 'Sydney, Melbourne' },
+        { value: 'Pacific/Auckland', label: 'Auckland' },
+        { value: 'UTC', label: 'UTC (Coordinated Universal Time)' }
+      ];
+      
+      timezones.forEach(tz => {
+        const option = document.createElement('option');
+        option.value = tz.value;
+        option.textContent = tz.label;
+        select.appendChild(option);
+      });
+    }
+
+    function loadTimezone() {
+      const saved = localStorage.getItem('user-timezone');
+      const select = document.getElementById('timezoneSelect');
+      
+      if (saved) {
+        select.value = saved;
+      } else {
+        // Try to detect user's timezone
+        const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        select.value = detected || 'America/New_York';
+      }
+    }
+
+    function saveTimezone() {
+      const timezone = document.getElementById('timezoneSelect').value;
+      localStorage.setItem('user-timezone', timezone);
     }
 
     async function loadNotificationSettings() {
